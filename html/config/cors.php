@@ -1,12 +1,5 @@
 <?php
 
-if (app()->environment('production')) {
-    $allowedOrigins = ['https://egleesgourmet.com'];
-}
-else {
-    $allowedOrigins = ['http://eglee.test'];
-}
-
 return [
 
     /*
@@ -26,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => $allowedOrigins,
+    'allowed_origins' => ['http://eglee.test', 'https://egleesgourmet.com'],
 
     'allowed_origins_patterns' => [],
 
