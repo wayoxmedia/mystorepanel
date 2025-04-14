@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://eglee.test', 'https://egleesgourmet.com'],
+    'allowed_origins' => [
+        'http://eglee.test',
+        'https://egleesgourmet.com',
+        'https://www.egleesgourmet.com'
+    ],
 
     'allowed_origins_patterns' => [],
 
