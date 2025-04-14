@@ -1,0 +1,19 @@
+
+
+###### Git branch in your prompt
+#source ~/.git-prompt.sh
+#PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
+
+### GIT
+alias gs="git status"
+alias gau="git add -u && gs"
+alias gcm="git commit -m"
+alias gps="git push"
+alias gpl="git pull"
+
+### DIR
+alias ll='ls -alF'
+alias la="ls -Al"
+alias lw="cd /var/www/html"
+alias lwx="cd /var/www/html && la && gs"
+

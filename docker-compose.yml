@@ -1,0 +1,11 @@
+services:
+  php-apache-environment:
+    image: php:8.2-apache
+    container_name: deepdevs
+    build:
+      context: ./
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ./html:/var/www/html/
+    ports:
+      - '${APP_PORT}:80'
