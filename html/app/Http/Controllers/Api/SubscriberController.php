@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class SubscriberController extends Controller
 {
-    protected $subscriberService;
+    protected SubscriberService $subscriberService;
 
     public function __construct()
     {
