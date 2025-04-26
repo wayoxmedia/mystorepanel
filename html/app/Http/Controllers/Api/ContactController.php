@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ class ContactController extends Controller
         $validated = $request->validate([
             'iptName' => 'required|string|max:30',
             'iptEmail' => 'required|email|max:50',
-            'iptMessage' => 'required|string',
+            'iptMessage' => 'required|string|max:500',
         ]);
 
         // Store the data in the database
