@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Subscriber;
 use App\Services\Api\SubscriberService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SubscriberController extends Controller
@@ -34,15 +35,19 @@ class SubscriberController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request): JsonResponse {
         $isInactive = false;
         // Validate the request.
         $validated = $request->validate([
             'iptAddress' => [
                 'required',
                 'string',
-                'max:100',
+                function ($attribute, $value, $fail) use ($request) {
+                    $maxLength = $request['selAddressType'] === 'e' ? 100 : 10;
+                    if (strlen($value) > $maxLength) {
+                        $fail("La dirección no puede tener más de $maxLength caracteres.");
+                    }
+                },
                 function ($attribute, $value, $fail) use ($request, &$isInactive) {
                     $existingSubscriber = Subscriber::where('address', $value)
                         ->where('address_type', $request['selAddressType'])
@@ -58,8 +63,8 @@ class SubscriberController extends Controller
                 function ($attribute, $value, $fail) use ($request) {
                     if ($request['selAddressType'] === 'e' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
                         $fail('Por favor use una dirección de email válida si selecciona la opción "Email".');
-                    } elseif ($request['selAddressType'] === 'p' && !preg_match('/^\+?[0-9]{10,15}$/', $value)) {
-                        $fail('Por favor use un número de teléfono válido si selecciona la opción "Teléfono".');
+                    } elseif ($request['selAddressType'] === 'p' && !ctype_digit($value)) {
+                        $fail('Por favor use solo números si selecciona la opción "Teléfono".');
                     }
                 },
             ],
@@ -86,9 +91,20 @@ class SubscriberController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id): JsonResponse
     {
-        //
+        // Validate the ID manually
+        if (!is_numeric($id) || !Subscriber::where('id', $id)->exists()) {
+            return response()->json(['message' => 'El ID proporcionado no es válido o no existe.'], 422);
+        }
+
+        $subscriber = $this->subscriberService->showById($id);
+
+        if (!$subscriber) {
+            return response()->json(['message' => 'Suscriptor no encontrado.'], 404);
+        }
+
+        return response()->json($subscriber);
     }
 
     /**

@@ -12,3 +12,5 @@ Route::get('/user', function (Request $request) {
 Route::post('/contact-form', [ContactController::class, 'store']);
 
 Route::post('/subscribe-form', [SubscriberController::class, 'store']);
+
+Route::get('/subscribers/{id}', [SubscriberController::class, 'show']);

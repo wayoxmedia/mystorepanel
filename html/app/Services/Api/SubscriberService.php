@@ -36,4 +36,18 @@ class SubscriberService
                 'active' => 1,
             ]);
     }
+
+    /**
+     * @param int $id
+     * @return Subscriber|null
+     */
+    public function showById(int $id): ?Subscriber {
+        $subscriber = Subscriber::find($id);
+
+        if ($subscriber) {
+            return $subscriber;
+        } else {
+            return null;
+        }
+    }
 }
