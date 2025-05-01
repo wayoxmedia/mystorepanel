@@ -8,16 +8,25 @@ use App\Services\Api\SubscriberService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Class SubscriberController
+ */
 class SubscriberController extends Controller
 {
+    /** @var SubscriberService */
     protected SubscriberService $subscriberService;
 
+    /**
+     * SubscriberController constructor.
+     */
     public function __construct()
     {
         $this->subscriberService = new SubscriberService();
     }
+
     /**
      * Display a listing of the resource.
+     * @return void
      */
     public function index()
     {
@@ -26,6 +35,7 @@ class SubscriberController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     * @return void
      */
     public function create()
     {
@@ -34,8 +44,11 @@ class SubscriberController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function store(Request $request): JsonResponse {
+    public function store(Request $request): JsonResponse
+    {
         $isInactive = false;
         // Validate the request.
         $validated = $request->validate([
@@ -49,7 +62,8 @@ class SubscriberController extends Controller
                     }
                 },
                 function ($attribute, $value, $fail) use ($request, &$isInactive) {
-                    $existingSubscriber = Subscriber::where('address', $value)
+                    $existingSubscriber = Subscriber::query()
+                        ->where('address', $value)
                         ->where('address_type', $request['selAddressType'])
                         ->first();
 
@@ -80,8 +94,7 @@ class SubscriberController extends Controller
 
         if ($isInactive) {
             $this->subscriberService->updateActiveStatus($validated);
-        }
-        else {
+        } else {
             $this->subscriberService->store($validated);
         }
 
@@ -90,6 +103,8 @@ class SubscriberController extends Controller
 
     /**
      * Display the specified resource.
+     * @param string $id
+     * @return JsonResponse
      */
     public function show(string $id): JsonResponse
     {
@@ -109,6 +124,8 @@ class SubscriberController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     * @param string $id
+     * @return void
      */
     public function edit(string $id)
     {
@@ -117,6 +134,9 @@ class SubscriberController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * @param Request $request
+     * @param string  $id
+     * @return void
      */
     public function update(Request $request, string $id)
     {
@@ -125,6 +145,8 @@ class SubscriberController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * @param string $id
+     * @return void
      */
     public function destroy(string $id)
     {

@@ -7,16 +7,29 @@ use App\Services\Api\ContactService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Class ContactController
+ */
 class ContactController extends Controller
 {
+    /** @var ContactService */
     protected ContactService $contactService;
 
+    /**
+     * ContactController constructor.
+     */
     public function __construct()
     {
         $this->contactService = new ContactService();
     }
 
-    public function store(Request $request): JsonResponse {
+    /**
+     * Display a listing of the resource.
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function store(Request $request): JsonResponse
+    {
         // Validate the request
         $validated = $request->validate([
             'iptName' => 'required|string|max:30',

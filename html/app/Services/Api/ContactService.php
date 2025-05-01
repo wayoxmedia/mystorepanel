@@ -4,6 +4,9 @@ namespace App\Services\Api;
 
 use App\Models\Contact;
 
+/**
+ * Class ContactService
+ */
 class ContactService
 {
     /**
@@ -14,6 +17,10 @@ class ContactService
         //
     }
 
+    /**
+     * @param array $data
+     * @return Contact
+     */
     public function store(array $data): Contact
     {
         // Store the data in the database

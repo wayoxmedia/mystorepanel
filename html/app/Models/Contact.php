@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class Contact
+ * @method static create(array $array)
  */
 class Contact extends Model
 {
@@ -15,7 +16,9 @@ class Contact extends Model
     // Define the table name if it's not the default "contacts"
     // protected $table = 'contacts';
 
-    // Specify which fields can be mass-assigned
+    /**
+     * @var string[] $fillable
+     */
     protected $fillable = [
         'name',
         'email',

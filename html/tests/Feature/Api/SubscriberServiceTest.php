@@ -8,10 +8,18 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
+/**
+ * Class SubscriberServiceTest.
+ */
 class SubscriberServiceTest extends TestCase
 {
     use DatabaseMigrations;
 
+    /**
+     * Set up the test environment.
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,10 +30,13 @@ class SubscriberServiceTest extends TestCase
     /**
      * Test the creation of a subscriber through the API.
      *
+     * @param array       $data
+     * @param boolean     $valid
+     * @param string|null $expected
      * @return void
      */
-    #[DataProvider('store_creates_a_new_subscriber_provider')]
-    public function test_subscriber_create($data, $valid, $expected)
+    #[DataProvider('storeCreatesNewSubscriberProvider')]
+    public function testSubscriberCreate(array $data, bool $valid, ?string $expected)
     {
         // Act: Make a POST request to the API endpoint
         $response = $this->postJson('/api/subscribe-form', $data);
@@ -41,13 +52,13 @@ class SubscriberServiceTest extends TestCase
                 'address' => $data['iptAddress'],
                 'address_type' => $data['selAddressType'],
             ]);
-        }
-        else {
+        } else {
             // Assert: Verify the response and database
             $response->assertStatus(422);
             $this->assertEquals(
                 $expected,
-                $response->getOriginalContent()['message']);
+                $response->getOriginalContent()['message']
+            );
 
             $this->assertDatabaseMissing('subscribers', [
                 'address' => $data['iptAddress'],
@@ -59,13 +70,13 @@ class SubscriberServiceTest extends TestCase
     /**
      * Test the update of a subscriber through the API.
      *
-     * @param $data
-     * @param $case
-     * @param $expected
+     * @param array       $data
+     * @param string      $case
+     * @param string|null $expected
      * @return void
      */
-    #[DataProvider('store_updates_an_existing_subscriber_provider')]
-    public function test_subscriber_update($data, $case, $expected)
+    #[DataProvider('storeUpdatesExistingSubscriberProvider')]
+    public function testSubscriberUpdate(array $data, string $case, ?string $expected)
     {
         switch ($case) {
             case 'Existing Phone Active':
@@ -85,6 +96,7 @@ class SubscriberServiceTest extends TestCase
             'address' => $data['iptAddress'],
             'address_type' => $data['selAddressType'],
             'active' => $active,
+            'id' => 1,
         ]);
 
         // Act: Make a GET request to verify the subscriber exists.
@@ -110,19 +122,20 @@ class SubscriberServiceTest extends TestCase
             case 'Existing Phone Active':
             case 'Existing Email Active':
             default:
-            // Assert: Verify the response
-            $response->assertStatus(422);
-            $this->assertEquals(
-                $expected,
-                $response->getOriginalContent()['message']);
+                // Assert: Verify the response
+                $response->assertStatus(422);
+                $this->assertEquals(
+                    $expected,
+                    $response->getOriginalContent()['message']
+                );
                 break;
 
             case 'Existing Phone Inactive':
             case 'Existing Email Inactive':
-            $response->assertStatus(200)
-                ->assertJson([
-                    'message' => "Suscripción exitosa."
-                ]);
+                $response->assertStatus(200)
+                    ->assertJson([
+                        'message' => "Suscripción exitosa."
+                    ]);
                 break;
         }
     }
@@ -135,7 +148,8 @@ class SubscriberServiceTest extends TestCase
      * Data provider for store_creates_a_new_subscriber_provider.
      * @return array
      */
-    public static function store_creates_a_new_subscriber_provider(): array {
+    public static function storeCreatesNewSubscriberProvider(): array
+    {
         return [
             'Valid Email Subscriber' => [
                 'data' => [
@@ -147,7 +161,7 @@ class SubscriberServiceTest extends TestCase
             ],
             'Valid Phone Subscriber' => [
                 'data' => [
-                    'iptAddress' => '+1234567890', // Fix, should not receive the +
+                    'iptAddress' => '1234567890',
                     'selAddressType' => 'p'
                 ],
                 'valid' => true,
@@ -161,9 +175,17 @@ class SubscriberServiceTest extends TestCase
                 'valid' => false,
                 'expected' => 'Por favor use una dirección de email válida si selecciona la opción "Email".'
             ],
-            'Invalid Phone Subscriber' => [
+            'Invalid Phone Subscriber 10 chars' => [
                 'data' => [
-                    'iptAddress' => 'invalid-phone',
+                    'iptAddress' => '12345678901',
+                    'selAddressType' => 'p'
+                ],
+                'valid' => false,
+                'expected' => 'La dirección no puede tener más de 10 caracteres.'
+            ],
+            'Invalid Phone Subscriber Non Numbers' => [
+                'data' => [
+                    'iptAddress' => 'invalid',
                     'selAddressType' => 'p'
                 ],
                 'valid' => false,
@@ -172,7 +194,7 @@ class SubscriberServiceTest extends TestCase
             'Missing Phone Subscriber' => [
                 'data' => [
                     'iptAddress' => '',
-                    'selAddressType' => 'e'
+                    'selAddressType' => 'p'
                 ],
                 'valid' => false,
                 'expected' => 'La dirección es requerida.'
@@ -188,7 +210,12 @@ class SubscriberServiceTest extends TestCase
         ];
     }
 
-    public static function store_updates_an_existing_subscriber_provider(): array {
+    /**
+     * Data provider for storeUpdatesExistingSubscriberProvider.
+     * @return array[]
+     */
+    public static function storeUpdatesExistingSubscriberProvider(): array
+    {
         return [
             'Existing Phone Subscriber Active' => [
                 'data' => [

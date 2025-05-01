@@ -7,6 +7,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
+/**
+ * Class SubscriberServiceTest.
+ */
 class SubscriberServiceTest extends TestCase
 {
     use RefreshDatabase;
@@ -14,10 +17,11 @@ class SubscriberServiceTest extends TestCase
     /**
      * Test the store method of SubscriberService.
      *
+     * @param array $data
      * @return void
      */
-    #[DataProvider('store_creates_a_new_subscriber_provider')]
-    public function test_store_creates_a_new_subscriber($data)
+    #[DataProvider('storeCreatesNewSubscriberProvider')]
+    public function testStoreCreatesNewSubscriber(array $data)
     {
         // Call the service method
         $service = new SubscriberService();
@@ -45,7 +49,8 @@ class SubscriberServiceTest extends TestCase
      * Data provider for store_creates_a_new_subscriber_provider.
      * @return array
      */
-    static public function store_creates_a_new_subscriber_provider(): array {
+    public static function storeCreatesNewSubscriberProvider(): array
+    {
         return [
             'Valid Email Subscriber' => [
                 'data' => [

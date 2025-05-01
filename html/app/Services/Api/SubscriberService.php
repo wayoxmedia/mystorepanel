@@ -4,6 +4,9 @@ namespace App\Services\Api;
 
 use App\Models\Subscriber;
 
+/**
+ * Class SubscriberService
+ */
 class SubscriberService
 {
     /**
@@ -14,6 +17,10 @@ class SubscriberService
         //
     }
 
+    /**
+     * @param array $data
+     * @return Subscriber
+     */
     public function store(array $data): Subscriber
     {
         return Subscriber::create([
@@ -25,10 +32,10 @@ class SubscriberService
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return mixed
      */
-    public function updateActiveStatus($data)
+    public function updateActiveStatus(array $data): mixed
     {
         return Subscriber::where('address', $data['iptAddress'])
             ->where('address_type', $data['selAddressType'])
@@ -38,10 +45,11 @@ class SubscriberService
     }
 
     /**
-     * @param int $id
+     * @param integer $id
      * @return Subscriber|null
      */
-    public function showById(int $id): ?Subscriber {
+    public function showById(int $id): ?Subscriber
+    {
         $subscriber = Subscriber::find($id);
 
         if ($subscriber) {
