@@ -16,11 +16,8 @@ You must have Docker installed and running properly.
 You should have already a folder structure like this:
 
     YourDevFolder
-
     |- EgleesGourmet
-
     |- orchestration
-
     |- myStoreAdmin     <- This repo
 
 ### Getting Started
