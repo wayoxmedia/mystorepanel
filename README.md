@@ -1,17 +1,17 @@
-## My Store Admin
-A restful API for a store admin to manage products, orders, and customers.
+# My Store Admin
+A restful API for a store admin to manage restaurant products, orders, and customers.
 
-### PreRequisites
+## PreRequisites
 
 * git
 * ssh
 * docker
 
-### Installation
+## Installation
 
 You must have Docker installed and running properly.
 
-#### Folder Structure
+### Folder Structure
 
 You should have already a folder structure like this:
 
@@ -23,6 +23,8 @@ You should have already a folder structure like this:
 
     |- myStoreAdmin
 
+### Getting Started
+
 Go to YourDevFolder and clone this repo using git
 
 `git clone git@github.com:wayoxmedia/myStoreAdmin.git`
@@ -31,9 +33,14 @@ cd into your app
 
 `cd myStoreAdmin`
 
+get a copy of the actual .env file form admins or create your own .env file and edit some values.
+```sh
+cp .env.example .env
+```
+
 run docker build
 
-`docker compose build`
+`docker compose --env-file .env build`
 
 This may take some minutes if this is your first install, images are been downloaded.
 
@@ -45,11 +52,12 @@ Check the containers are properly running
 
 `docker ps`
 
-#### Composer, .env and artisan
+### Composer, .env and artisan
 
-Now that you have successfully built the containers, you need to run composer install.
+Now that you have successfully built the containers, you need to ssh into your container and run composer install and some other commands.
 
 ```sh
+cd html
 docker exec -it deepdevs bash
 composer install
 ```
@@ -81,7 +89,7 @@ DB_USERNAME=REQUEST_TO_ADMINS
 DB_PASSWORD=REQUEST_TO_ADMINS
 ```
 
-#### Updating your hosts file
+### Updating your hosts file
 MacOS & Linux
 In your terminal, run
 ```sh
@@ -122,6 +130,11 @@ sh tests.sh tests/Feature
 ```
 
 ### That's it! Welcome to your restful API Environment.
+
+### Recommendations
+
+* Use Visual Studio Code with the Remote - Containers extension to open your project in a container.
+* Use the Docker extension to manage your containers, images, volumes, networks and containers.
 
 Happy coding!
 
