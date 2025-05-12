@@ -21,7 +21,7 @@ You should have already a folder structure like this:
 
     |- orchestration
 
-    |- myStoreAdmin
+    |- myStoreAdmin     <- This repo
 
 ### Getting Started
 
