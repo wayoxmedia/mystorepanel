@@ -109,7 +109,7 @@ case "$mode" in
   *)
     ./vendor/bin/phpunit --configuration phpunit.xml \
       "$route" $filter \
-      --testdox --colors=always \
+      --testdox --colors=always --quiet \
       | tee -a "$log_file"
     ;;
 esac
