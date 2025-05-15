@@ -9,3 +9,5 @@ services:
       - ./html:/var/www/html/
     ports:
       - '${APP_PORT}:80'
+    env_file:
+      - .env

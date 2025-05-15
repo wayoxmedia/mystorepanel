@@ -3,8 +3,13 @@
 # 🧪 Laravel PHPUnit Runner - Enhanced
 # Please run this script *inside your Docker container*
 
+start_time=$(date +%s)
+junit_file="tests/reports/results.xml"
+ci_mode=false
+
 # 📛 Show help + error usage
 show_error_and_exit() {
+  clear
   printf "🚫 \033[1;31mError:\033[0m %s\n\n" "$1"
   printf "📘 \033[1mUsage:\033[0m\n"
   printf "  \033[1;32msh tests.sh <TestFolder> [--filter keyword] [--coverage|--isolation|--debug]\033[0m\n\n"
@@ -43,7 +48,7 @@ while [ $# -gt 0 ]; do
       [ -z "$1" ] && show_error_and_exit "Missing filter keyword after --filter"
       filter="--filter $1"
       ;;
-    --coverage|--isolation|--debug|--ci|--slack)
+    --coverage|--isolation|--debug|--ci|--slack|--slack-coverage)
       mode="$1"
       ;;
     *)
@@ -75,65 +80,119 @@ case "$mode" in
   --coverage)
     php -d xdebug.mode=coverage ./vendor/bin/phpunit \
       --configuration phpunit.xml "$route" $filter \
-      --testdox --colors=always \
+      --testdox --colors=always --log-junit "$junit_file" \
       --coverage-html tests/reports/coverage \
       | tee -a "$log_file"
     ;;
   --isolation)
     ./vendor/bin/phpunit --configuration phpunit.xml \
       "$route" $filter \
-      --testdox --colors=always \
+      --testdox --colors=always --log-junit "$junit_file" \
       --process-isolation \
       | tee -a "$log_file"
     ;;
   --debug)
     ./vendor/bin/phpunit --configuration phpunit.xml \
       "$route" $filter \
-      --testdox --colors=always --debug \
+      --testdox --colors=always --debug --log-junit "$junit_file" \
       | tee -a "$log_file"
     ;;
   --ci)
     # Silent output suitable for CI environments
+    ci_mode=true
     ./vendor/bin/phpunit --configuration phpunit.xml \
       "$route" $filter \
-      --colors=always --no-coverage \
+      --colors=always --no-coverage --log-junit "$junit_file" \
       | tee -a "$log_file"
     ;;
+  --slack-coverage)
+    slack_notify=true
+      php -d xdebug.mode=coverage ./vendor/bin/phpunit \
+        --configuration phpunit.xml "$route" $filter \
+        --testdox --colors=always --log-junit "$junit_file" \
+        --coverage-html tests/reports/coverage \
+        | tee -a "$log_file"
+      ;;
   --slack)
     slack_notify=true
     ./vendor/bin/phpunit --configuration phpunit.xml \
-      "$route" $filter \
+      "$route" $filter --log-junit "$junit_file" \
       --testdox --colors=always\
       | tee -a "$log_file"
     ;;
   *)
     ./vendor/bin/phpunit --configuration phpunit.xml \
-      "$route" $filter \
-      --testdox --colors=always --quiet \
+      "$route" $filter --log-junit "$junit_file" \
+      --testdox --colors=always \
       | tee -a "$log_file"
     ;;
 esac
 
-# 🧑‍💻 Send Slack notification if --slack is set
-if [ "$slack_notify" = true ]; then
-  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  slack_message=":tada: Tests completed at $timestamp\nStatus: Check logs for errors\nLogs: $log_file"
+# 🧪 Parse test results from JUnit XML
+if [ "$ci_mode" != true ] && [ -f "$junit_file" ]; then
+  tests=$(xmllint --xpath "string(//testsuite/@tests)" "$junit_file")
+  failures=$(xmllint --xpath "string(//testsuite/@failures)" "$junit_file")
+  errors=$(xmllint --xpath "string(//testsuite/@errors)" "$junit_file")
+  assertions=$(xmllint --xpath "string(//testsuite/@assertions)" "$junit_file")
 
-  # Replace with your Slack webhook URL
-  webhook_url="https://hooks.slack.com/services/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"
-
-  curl -X POST -H 'Content-type: application/json' \
-    --data "{\"text\":\"$slack_message\"}" \
-    "$webhook_url"
-  printf "🔔 Slack notification sent!\n"
+  summary="🧪 $tests tests, ✅ $assertions assertions, ❌ $failures failures, 🔥 $errors errors"
+  printf "%s\n" "$summary"
+  echo "$summary" >> "$log_file"
 fi
+
+# 📨 Slack Notification
+if [ "$slack_notify" = true ]; then
+  slack_webhook_url="https://hooks.slack.com/services/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" # Replace with your real webhook
+  slack_username="${TEST_RUN_USER:-unknown}"
+
+  # Calculate duration
+  end_time=$(date +%s)
+  duration=$((end_time - start_time))
+  duration_fmt=$(printf "%02dm:%02ds" $((duration / 60)) $((duration % 60)))
+
+  # Coverage link (if used)
+  if [ "$mode" = "--slack-coverage" ]; then
+    coverage_link="📊 Coverage: ${APP_URL:-http://localhost}:${APP_PORT:-80}/tests/reports/coverage/index.html"
+  else
+    coverage_link=""
+  fi
+
+  # Only add filter info if a filter is provided
+  if [ -n "$filter" ]; then
+    filter_info="*🔎 Filter:* \`$filter\`\n"
+  else
+    filter_info=""
+  fi
+  # Slack payload
+  slack_payload=$(cat <<EOF
+{
+  "username": "PHPUnit Bot",
+  "icon_emoji": ":test_tube:",
+  "text": "*✅ Tests finished by:* \`$slack_username\`
+  *📂 Folder:* \`$route\`
+  $filter_info  *⚙️ Mode:* \`$mode\`
+  *⏱ Duration:* \`$duration_fmt\`
+  *📄 Summary:* $summary
+  $coverage_link"
+}
+EOF
+)
+
+  curl -s -X POST -H 'Content-type: application/json' \
+    --data "$slack_payload" \
+    "$slack_webhook_url" > /dev/null
+fi
+
 # Add a separator and timestamp at the end of the log entry
 var1="\n────────────────────────────────────────────────────────────\n"
 var2="Log entry finished at: $timestamp \n"
 var3="──────────────────────────────────────────────────────────────\n\n"
 echo "$var1" "$var2" "$var3" >> "$log_file"
 
+if [ "$ci_mode" != true ]; then
+  # 📝 Log entry finished
+  printf "📝 Log entry finished at: \033[1;36m%s\033[0m\n" "$timestamp"
 
-# 📝 Log file location
-printf "📝 Test results logged to: \033[1;36m%s\033[0m\n" "$log_file"
-
+  # 📝 Log file location
+  printf "📝 Test results logged to: \033[1;36m%s\033[0m\n" "$log_file"
+fi

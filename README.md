@@ -24,11 +24,14 @@ You should have already a folder structure like this:
 
 Go to YourDevFolder and clone this repo using git
 
-`git clone git@github.com:wayoxmedia/myStoreAdmin.git`
-
+```sh
+git clone git@github.com:wayoxmedia/myStoreAdmin.git
+```
 cd into your app
 
-`cd myStoreAdmin`
+```sh
+cd myStoreAdmin
+```
 
 get a copy of the actual .env file form admins or create your own .env file and edit some values.
 ```sh
@@ -37,17 +40,23 @@ cp .env.example .env
 
 run docker build
 
-`docker compose --env-file .env build`
+```sh
+docker compose --env-file .env build
+```
 
 This may take some minutes if this is your first install, images are been downloaded.
 
 Now, bring up the environment.
 
-`docker-compose up -d`
+```sh
+docker-compose up -d
+```
 
 Check the containers are properly running
 
-`docker ps`
+```sh
+docker ps
+```
 
 ### Composer, .env and artisan
 
@@ -107,8 +116,9 @@ After these steps, you may need to flush your dns.
 
 Finally, navigate with your browser to the app home page.
 
-`http://deepdevs.test`
-
+```url
+http://deepdevs.test
+```
 You should see the welcome page, check it is properly working.
 
 
@@ -117,13 +127,20 @@ You should see the welcome page, check it is properly working.
 ```sh
 docker exec -it deepdevs bash
 sh phpcs.sh s app
-sh phpcs.sh s tests
+sh phpcs.sh s tests/Feature
+sh phpcs.sh s tests/Unit
 ```
 #### Running your tests
 ```sh
 docker exec -it deepdevs bash
 sh tests.sh tests/Unit
 sh tests.sh tests/Feature
+sh tests.sh tests --slack
+sh tests.sh tests --slack-coverage
+sh tests.sh tests --coverage
+sh tests.sh tests --isolation
+sh tests.sh tests --filter upd --debug
+sh tests.sh tests --ci # in dev/testing, do not use
 ```
 
 ### That's it! Welcome to your restful API Environment.
