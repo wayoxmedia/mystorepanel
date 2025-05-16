@@ -142,7 +142,8 @@ fi
 
 # 📨 Slack Notification
 if [ "$slack_notify" = true ]; then
-  slack_webhook_url="https://hooks.slack.com/services/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" # Replace with your real webhook
+  printf "Sending to Slack\n"
+  slack_webhook_url="${SLACK_PHPUNIT_NOTIFY_WEBHOOK_URL:-unknown}"
   slack_username="${TEST_RUN_USER:-unknown}"
 
   # Calculate duration
@@ -152,16 +153,18 @@ if [ "$slack_notify" = true ]; then
 
   # Coverage link (if used)
   if [ "$mode" = "--slack-coverage" ]; then
-    coverage_link="📊 Coverage: ${APP_URL:-http://localhost}:${APP_PORT:-80}/tests/reports/coverage/index.html"
+    printf "Sending also link to see coverage\n"
+    coverage_link="http://localhost:${APP_PORT:-80}/tests/reports/coverage/index.html"
   else
-    coverage_link=""
+    printf "Coverage mode not selected, not sending coverage information\n"
+    coverage_link="Coverage mode not selected"
   fi
 
   # Only add filter info if a filter is provided
   if [ -n "$filter" ]; then
-    filter_info="*🔎 Filter:* \`$filter\`\n"
+    filter_info="$filter"
   else
-    filter_info=""
+    filter_info="No filter applied"
   fi
   # Slack payload
   slack_payload=$(cat <<EOF
@@ -170,10 +173,11 @@ if [ "$slack_notify" = true ]; then
   "icon_emoji": ":test_tube:",
   "text": "*✅ Tests finished by:* \`$slack_username\`
   *📂 Folder:* \`$route\`
-  $filter_info  *⚙️ Mode:* \`$mode\`
+  *🔎 Filter:* \`$filter_info\`
+  *⚙️ Mode:* \`$mode\`
   *⏱ Duration:* \`$duration_fmt\`
   *📄 Summary:* $summary
-  $coverage_link"
+  *📊 Coverage:* $coverage_link"
 }
 EOF
 )

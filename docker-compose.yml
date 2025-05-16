@@ -1,6 +1,6 @@
 services:
   php-apache-environment:
-    image: php:8.2-apache
+    image: deepdevs:1.0.0
     container_name: deepdevs
     build:
       context: ./
@@ -11,3 +11,7 @@ services:
       - '${APP_PORT}:80'
     env_file:
       - .env
+    environment:
+      # Enables Xdebug's code coverage analysis for development and testing purposes.
+      # Ensure this is disabled in production to avoid performance issues.
+      - XDEBUG_MODE=coverage
