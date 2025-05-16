@@ -1,6 +1,6 @@
 services:
   php-apache-environment:
-    image: deepdevs:latest
+    image: deepdevs:1.0.0
     container_name: deepdevs
     build:
       context: ./
@@ -12,4 +12,6 @@ services:
     env_file:
       - .env
     environment:
+      # Enables Xdebug's code coverage analysis for development and testing purposes.
+      # Ensure this is disabled in production to avoid performance issues.
       - XDEBUG_MODE=coverage

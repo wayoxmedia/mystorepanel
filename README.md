@@ -116,7 +116,7 @@ After these steps, you may need to flush your dns.
 
 Finally, navigate with your browser to the app home page.
 
-`http://deepdevs.test`
+[http://deepdevs.test](http://deepdevs.test)
 
 You should see the welcome page, check it is properly working.
 
