@@ -1,6 +1,6 @@
 services:
   php-apache-environment:
-    image: php:8.2-apache
+    image: deepdevs:latest
     container_name: deepdevs
     build:
       context: ./
@@ -11,3 +11,5 @@ services:
       - '${APP_PORT}:80'
     env_file:
       - .env
+    environment:
+      - XDEBUG_MODE=coverage
