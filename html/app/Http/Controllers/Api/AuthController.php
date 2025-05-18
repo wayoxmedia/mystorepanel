@@ -23,7 +23,8 @@ class AuthController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        if (!$token = auth('api')->attempt($credentials)) {
+        $token = auth('api')->attempt($credentials);
+        if (!$token) {
             return response()->json(['error' => 'Unauthorized - Failed'], 401);
         }
 
@@ -57,5 +58,20 @@ class AuthController extends Controller
         return $user
             ? response()->json($user)
             : response()->json(['error' => 'User not authenticated'], 401);
+    }
+
+    /**
+     * Refresh a token.
+     *
+     * @return JsonResponse
+     */
+    public function refresh(): JsonResponse
+    {
+        $data = [
+            'access_token' => auth()->refresh(),
+            'expires_in' => auth('api')->factory()->getTTL() * 60
+        ];
+
+        return response()->json($data);
     }
 }
