@@ -96,7 +96,7 @@ DB_USERNAME=REQUEST_TO_ADMINS
 DB_PASSWORD=REQUEST_TO_ADMINS
 ```
 
-While there, you can also check if exists oredit the JWT_TTL variable.
+While there, you can also check if exists or edit the JWT_TTL variable.
 
 ```text
 JWT_TTL=ASK_ADMINS
@@ -133,6 +133,9 @@ You should see the welcome page, check it is properly working.
 #### Linting your code
 ```sh
 docker exec -it deepdevs bash
+```
+Use any of these commands to lint your code.
+```sh
 sh phpcs.sh s app
 sh phpcs.sh s tests/Feature
 sh phpcs.sh s tests/Unit
@@ -140,6 +143,9 @@ sh phpcs.sh s tests/Unit
 #### Running your tests
 ```sh
 docker exec -it deepdevs bash
+```
+Use any of these commands to run your tests.
+```sh
 sh tests.sh tests/Unit
 sh tests.sh tests/Feature
 sh tests.sh tests --slack
