@@ -73,10 +73,11 @@ After composer install, you need to create a .env file (Stay inside the containe
 cp .env.example .env
 ```
 
-run artisan key:generate
+run artisan key:generate and jwt:secret
 
 ```sh
 php artisan key:generate
+php artisan jwt:secret
 ```
 
 now, update the .env file with your DB credentials.
@@ -94,6 +95,13 @@ DB_DATABASE=REQUEST_TO_ADMINS
 DB_USERNAME=REQUEST_TO_ADMINS
 DB_PASSWORD=REQUEST_TO_ADMINS
 ```
+
+While there, you can also check if exists oredit the JWT_TTL variable.
+
+```text
+JWT_TTL=ASK_ADMINS
+```
+Make sure you have a recent version of the .env file, as some variables may change over time. Contact the admins if you need to update your .env file.
 
 ### Updating your hosts file
 MacOS & Linux
