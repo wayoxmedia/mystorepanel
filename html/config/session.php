@@ -169,7 +169,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // No usamos cookies seguras porque no usamos sesión.
+    'secure' => false, //env('SESSION_SECURE_COOKIE'),
 
     /*
     |--------------------------------------------------------------------------
@@ -199,7 +200,8 @@ return [
     |
     */
 
-    'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    // Lax está bien porque no se envían cookies entre dominios.
+    'same_site' => 'lax', //env('SESSION_SAME_SITE', 'lax'),
 
     /*
     |--------------------------------------------------------------------------
