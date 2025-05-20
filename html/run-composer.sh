@@ -1,6 +1,9 @@
 #!/bin/bash
-
-# Rutas
+## WARNING
+## This script is intended to be run from the command line and in PROD env.
+## It is not intended to be run local.
+## It is not intended to be run in a Docker container.
+# Routes
 PHP="/opt/php82/bin/php"
 COMPOSER="/usr/local/bin/composer"
 
@@ -9,25 +12,25 @@ LOG_DIR="./logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/composer-$(date '+%Y-%m').log"
 
-# Validación de argumentos
+# Args Validation
 if [ -z "$1" ]; then
     echo "❌ Por favor, especifica un comando para Composer (install, update, require, etc)." | tee -a "$LOG_FILE"
     echo "Uso: $0 <comando> [argumentos...]" | tee -a "$LOG_FILE"
     exit 1
 fi
 
-# Comando principal
+# Main Command
 COMMAND="$1"
 shift
 
-# Construcción del comando
+# Build command
 if [ "$COMMAND" == "install" ]; then
     CMD="$PHP $COMPOSER install --no-dev --optimize-autoloader --no-interaction $*"
 else
     CMD="$PHP $COMPOSER $COMMAND $*"
 fi
 
-# Imprimir y loggear encabezado
+# Print & log header
 {
     echo ""
     echo "======================================="
@@ -36,5 +39,5 @@ fi
     echo "---------------------------------------"
 } | tee -a "$LOG_FILE"
 
-# Ejecutar y loggear la salida
+# Run & log output
 $CMD 2>&1 | tee -a "$LOG_FILE"
