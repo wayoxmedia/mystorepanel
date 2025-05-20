@@ -8,7 +8,7 @@ PHP="/opt/php82/bin/php"
 COMPOSER="/usr/local/bin/composer"
 
 # Logs
-LOG_DIR="./logs"
+LOG_DIR="./storage/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/composer-$(date '+%Y-%m').log"
 
