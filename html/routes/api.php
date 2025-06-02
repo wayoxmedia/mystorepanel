@@ -30,6 +30,5 @@ Route::post('/subscribe-form', [SubscriberController::class, 'store']);
 // Get Subscriber by ID (GET)
 Route::get('/subscribers/{id}', [SubscriberController::class, 'show']);
 
-Route::get('login', function () {
-    return response()->json(['message' => 'Unauthenticated in API.'], 200);
-})->name('login');
+// Get Subscribers List (GET)
+Route::get('/subscribers', [SubscriberController::class, 'index']);

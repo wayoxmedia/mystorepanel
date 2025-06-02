@@ -7,6 +7,10 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Class AuthController
+ * Handles authentication-related actions such as login, logout, user info retrieval, and token refresh.
+ */
 class AuthController extends Controller
 {
     /**

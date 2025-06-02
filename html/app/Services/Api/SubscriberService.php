@@ -3,6 +3,8 @@
 namespace App\Services\Api;
 
 use App\Models\Subscriber;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * Class SubscriberService
@@ -33,11 +35,12 @@ class SubscriberService
 
     /**
      * @param array $data
-     * @return mixed
+     * @return boolean
      */
-    public function updateActiveStatus(array $data): mixed
+    public function updateActiveStatus(array $data): bool
     {
-        return Subscriber::where('address', $data['iptAddress'])
+        return Subscriber::query()
+            ->where('address', $data['iptAddress'])
             ->where('address_type', $data['selAddressType'])
             ->update([
                 'active' => 1,
@@ -57,5 +60,23 @@ class SubscriberService
         } else {
             return null;
         }
+    }
+
+    /**
+     * @param string|null $ip
+     * @return mixed
+     * @throws GuzzleException On HTTP request failure.
+     */
+    public function getGeolocationData(?string $ip): mixed
+    {
+        if (is_null($ip)) {
+            return null;
+        }
+
+        $client = new Client();
+        $response = $client->get('http://ip-api.com/json/' . $ip);
+        $contents = $response->getBody()->getContents();
+
+        return json_decode($contents);
     }
 }
