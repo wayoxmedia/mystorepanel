@@ -1,5 +1,5 @@
-# My Store Admin
-A restful API for a store admin to manage restaurant products, orders, and customers.
+# My Store Panel
+A restful API for a store admin to manage store products, orders, and customers.
 
 ## PreRequisites
 
@@ -18,19 +18,19 @@ You should have already a folder structure like this:
     YourDevFolder
     |- EgleesGourmet
     |- orchestration
-    |- myStoreAdmin     <- This repo
+    |- myStorePanel     <- This repo
 
 ### Getting Started
 
 Go to YourDevFolder and clone this repo using git
 
 ```sh
-git clone git@github.com:wayoxmedia/myStoreAdmin.git
+git clone git@github.com:wayoxmedia/myStorePanel.git
 ```
 cd into your app
 
 ```sh
-cd myStoreAdmin
+cd myStorePanel
 ```
 
 get a copy of the actual .env file form admins or create your own .env file and edit some values.
@@ -64,7 +64,7 @@ Now that you have successfully built the containers, you need to ssh into your c
 
 ```sh
 cd html
-docker exec -it deepdevs bash
+docker exec -it mystorepanel bash
 composer install
 ```
 After composer install, you need to create a .env file (Stay inside the container).
@@ -115,7 +115,7 @@ Open [SystemRoot]\system32\drivers\etc\hosts and edit the file with your text ed
 ```
 Add the following lines at the end of this hosts file
 ```
-127.0.0.1     deepdevs.test
+127.0.0.1     mystorepanel.test
 ```
 MacOS & Linux: 'Ctrl+O' then 'y' to save and 'Ctrl+X' to quit nano.
 PC: Save and quit your editor.
@@ -124,7 +124,7 @@ After these steps, you may need to flush your dns.
 
 Finally, navigate with your browser to the app home page.
 
-[http://deepdevs.test](http://deepdevs.test)
+[http://mystorepanel.test](http://mystorepanel.test)
 
 You should see the welcome page, check it is properly working.
 
@@ -132,7 +132,7 @@ You should see the welcome page, check it is properly working.
 ### Recommendations
 #### Linting your code
 ```sh
-docker exec -it deepdevs bash
+docker exec -it mystorepanel bash
 ```
 Use any of these commands to lint your code.
 ```sh
@@ -142,7 +142,7 @@ sh phpcs.sh s tests/Unit
 ```
 #### Running your tests
 ```sh
-docker exec -it deepdevs bash
+docker exec -it mystorepanel bash
 ```
 Use any of these commands to run your tests.
 ```sh
