@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -47,11 +46,21 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    public function getJWTIdentifier()
+    /**
+     * The attributes that should be appended to the model's array form.
+     *
+     * @return array<string>
+     */
+    public function getJWTIdentifier(): array
     {
         return $this->getKey();
     }
 
+    /**
+     * Get the custom claims for the JWT.
+     *
+     * @return array<string, mixed>
+     */
     public function getJWTCustomClaims(): array
     {
         return [];

@@ -105,10 +105,10 @@ class SubscriberServiceTest extends TestCase
         // Assertions: Verify the response and database
         $response->assertStatus(200);
         $response->assertJson([
-                'address' => $data['iptAddress'],
-                'address_type' => $data['selAddressType'],
-                'active' => $active,
-            ]);
+            'address' => $data['iptAddress'],
+            'address_type' => $data['selAddressType'],
+            'active' => $active,
+        ]);
         $this->assertDatabaseHas('subscribers', [
             'address' => $data['iptAddress'],
             'address_type' => $data['selAddressType'],

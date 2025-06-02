@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Subscriber;
 use App\Services\Api\SubscriberService;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -26,11 +27,14 @@ class SubscriberController extends Controller
 
     /**
      * Display a listing of the resource.
-     * @return void
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        $subscribers = Subscriber::all();
+        return response()->json([
+            'data' => $subscribers
+        ]);
     }
 
     /**
@@ -46,6 +50,7 @@ class SubscriberController extends Controller
      * Store a newly created resource in storage.
      * @param Request $request
      * @return JsonResponse
+     * @throws GuzzleException On Geolocation API failure.
      */
     public function store(Request $request): JsonResponse
     {
@@ -90,7 +95,12 @@ class SubscriberController extends Controller
             'iptAddress.max' => 'La dirección no puede tener mas de 100 caracteres.',
             'selAddressType.in' => 'Por favor elija entre teléfono o email.',
         ]);
-        $validated['user_ip'] = $request->ip();
+        $ip = $request->ip();
+        $validated['user_ip'] = $ip;
+        $validated['store_id'] = '1'; // This is a placeholder for EG, the actual store_id will be set later.
+
+        // Get the geolocation data using an external API.
+        $validated['geolocation'] = $this->subscriberService->getGeolocationData($ip);
 
         if ($isInactive) {
             $this->subscriberService->updateActiveStatus($validated);
@@ -103,13 +113,16 @@ class SubscriberController extends Controller
 
     /**
      * Display the specified resource.
+     *
      * @param string $id
      * @return JsonResponse
      */
     public function show(string $id): JsonResponse
     {
         // Validate the ID manually
-        if (!is_numeric($id) || !Subscriber::where('id', $id)->exists()) {
+        if (!is_numeric($id) || !Subscriber::query()
+                ->where('id', $id)
+                ->exists()) {
             return response()->json(['message' => 'El ID proporcionado no es válido o no existe.'], 422);
         }
 
@@ -134,6 +147,7 @@ class SubscriberController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
      * @param Request $request
      * @param string  $id
      * @return void
