@@ -73,6 +73,17 @@ After composer install, you need to create a .env file (Stay inside the containe
 cp .env.example .env
 ```
 
+Make sure you define the testing environment in your .env file.
+
+```sh
+cp .env.testing.sample .env.testing
+nano .env.testing
+```
+And set the APP_ENV variable to testing.
+```text
+APP_ENV=testing
+```
+
 run artisan key:generate and jwt:secret
 
 ```sh

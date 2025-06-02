@@ -97,10 +97,10 @@ class SubscriberController extends Controller
         ]);
         $ip = $request->ip();
         $validated['user_ip'] = $ip;
-        $validated['store_id'] = '1'; // This is a placeholder for EG, the actual store_id will be set later.
+        $validated['store_id'] = 1; // This is a placeholder for EG, the actual store_id will be set later.
 
         // Get the geolocation data using an external API.
-        $validated['geolocation'] = $this->subscriberService->getGeolocationData($ip);
+        $validated['geo_location'] = $this->subscriberService->getGeolocationData($ip);
 
         if ($isInactive) {
             $this->subscriberService->updateActiveStatus($validated);
@@ -120,9 +120,11 @@ class SubscriberController extends Controller
     public function show(string $id): JsonResponse
     {
         // Validate the ID manually
-        if (!is_numeric($id) || !Subscriber::query()
+        if (!is_numeric($id)
+            || !Subscriber::query()
                 ->where('id', $id)
-                ->exists()) {
+                ->exists()
+        ) {
             return response()->json(['message' => 'El ID proporcionado no es válido o no existe.'], 422);
         }
 

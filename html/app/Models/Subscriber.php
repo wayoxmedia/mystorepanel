@@ -24,6 +24,8 @@ class Subscriber extends Model
         'address_type',
         'user_ip',
         'geo_location',
+        'active',
+        'store_id',
     ];
 
     /** @var mixed $id */
