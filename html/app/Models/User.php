@@ -49,9 +49,9 @@ class User extends Authenticatable implements JWTSubject
     /**
      * The attributes that should be appended to the model's array form.
      *
-     * @return array<string>
+     * @return int
      */
-    public function getJWTIdentifier(): array
+    public function getJWTIdentifier(): int
     {
         return $this->getKey();
     }
