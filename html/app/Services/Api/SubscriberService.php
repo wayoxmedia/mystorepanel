@@ -25,10 +25,12 @@ class SubscriberService
      */
     public function store(array $data): Subscriber
     {
-        return Subscriber::create([
+        return Subscriber::query()->create([
+            'store_id' => $data['store_id'] ?? null,
             'address' => $data['iptAddress'],
             'address_type' => $data['selAddressType'],
             'user_ip' => $data['user_ip'] ?? null,
+            'geo_location' => $data['geo_location'] ?? null,
             'active' => 1,
         ]);
     }
@@ -75,8 +77,7 @@ class SubscriberService
 
         $client = new Client();
         $response = $client->get('http://ip-api.com/json/' . $ip);
-        $contents = $response->getBody()->getContents();
 
-        return json_decode($contents);
+        return $response->getBody()->getContents();
     }
 }
