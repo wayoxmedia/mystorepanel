@@ -25,9 +25,12 @@ class ContactService
     {
         // Store the data in the database
         return Contact::create([
+            'store_id' => $data['store_id'],
             'name' => $data['iptName'],
             'email' => $data['iptEmail'],
             'message' => $data['iptMessage'],
+            'user_ip' => $data['user_ip'],
+            'geo_location' => $data['geo_location'] ?? null, // Optional, can be null if API Failed.
         ]);
     }
 }

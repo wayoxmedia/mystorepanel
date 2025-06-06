@@ -28,6 +28,16 @@ class Subscriber extends Model
         'store_id',
     ];
 
+    /**
+     * Field 'geo_location' is JSON, adding cast
+     * so it can be handled as an array automatically.
+     *
+     * @var array<string, string> $casts
+     */
+    protected $casts = [
+        'geo_location' => 'array',
+    ];
+
     /** @var mixed $id */
     private mixed $id;
 

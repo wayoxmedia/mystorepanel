@@ -21,9 +21,22 @@ Route::middleware('auth:api')->group(function () {
 // Login (POST)
 Route::post('/auth/login', [AuthController::class, 'login']);
 
+/**
+ * Contact Routes
+ */
 // Send Contact Form (POST)
 Route::post('/contact-form', [ContactController::class, 'store']);
 
+// Get Contact by ID (GET)
+Route::get('/contacts/{id}', [ContactController::class, 'show']);
+
+// Get Contacts List (GET)
+Route::get('/contacts', [ContactController::class, 'index']);
+
+
+/**
+ * Subscriber Routes
+ */
 // Subscribe Form (POST)
 Route::post('/subscribe-form', [SubscriberController::class, 'store']);
 

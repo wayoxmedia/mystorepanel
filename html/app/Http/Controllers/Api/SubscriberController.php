@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscriber;
+use App\Services\Api\GeolocationService;
 use App\Services\Api\SubscriberService;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\JsonResponse;
@@ -16,6 +17,8 @@ class SubscriberController extends Controller
 {
     /** @var SubscriberService */
     protected SubscriberService $subscriberService;
+
+    protected GeolocationService $geolocationService;
 
     /**
      * SubscriberController constructor.
@@ -100,7 +103,7 @@ class SubscriberController extends Controller
         $validated['store_id'] = 1; // This is a placeholder for EG, the actual store_id will be set later.
 
         // Get the geolocation data using an external API.
-        $validated['geo_location'] = $this->subscriberService->getGeolocationData($ip);
+        $validated['geo_location'] = $this->geolocationService->getGeolocationByIp($ip);
 
         if ($isInactive) {
             $this->subscriberService->updateActiveStatus($validated);
