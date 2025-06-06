@@ -26,6 +26,7 @@ class SubscriberController extends Controller
     public function __construct()
     {
         $this->subscriberService = new SubscriberService();
+        $this->geolocationService = new GeolocationService();
     }
 
     /**
