@@ -23,6 +23,10 @@ class ContactService
      */
     public function store(array $data): Contact
     {
+        if (is_string($data['geo_location'])) {
+            $data['geo_location'] = json_decode($data['geo_location'], true);
+        }
+
         // Store the data in the database
         return Contact::create([
             'store_id' => $data['store_id'],

@@ -21,6 +21,9 @@ return [
 
     'allowed_origins' => [
         'http://eglee.test',
+        'http://template1.test',
+        'http://template2.test',
+        'http://template3.test',
         'https://egleesgourmet.com',
         'https://www.egleesgourmet.com'
     ],
