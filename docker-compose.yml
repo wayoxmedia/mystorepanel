@@ -1,7 +1,7 @@
 services:
   php-apache-environment:
-    image: deepdevs:1.0.0
-    container_name: deepdevs
+    image: dataserver:1.0.0
+    container_name: dataserver
     build:
       context: ./
       dockerfile: docker/Dockerfile
@@ -14,4 +14,5 @@ services:
     environment:
       # Enables Xdebug's code coverage analysis for development and testing purposes.
       # Ensure this is disabled in production to avoid performance issues.
-      - XDEBUG_MODE=coverage
+      - XDEBUG_MODE=coverage,debug
+      - XDEBUG_CONFIG=client_host=host.docker.internal client_port=9003 idekey=PHPSTORM discover_client_host=0 log=/var/www/html/storage/logs/xdebug.log log_level=7 start_with_request=trigger

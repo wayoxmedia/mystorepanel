@@ -25,6 +25,10 @@ class SubscriberService
      */
     public function store(array $data): Subscriber
     {
+        if (is_string($data['geo_location'])) {
+            $data['geo_location'] = json_decode($data['geo_location'], true);
+        }
+
         return Subscriber::query()->create([
             'store_id' => $data['store_id'] ?? null,
             'address' => $data['iptAddress'],
