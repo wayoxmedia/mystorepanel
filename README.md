@@ -13,20 +13,14 @@ You must have Docker installed and running properly.
 
 ### Folder Structure
 
-You should have already a folder 📁 structure like this:
+You should end up with a folder 📁 structure like this:
 
     YourDevFolder
     |- template1        |
-    |- template2        |
-    |- template3        |
-    |- template4        | <- Optional repos
-    |- template5        |
-    |- template6        |
+    |- ...              | <- Optional repos
     |- template7        |
-    |- orchestration    <- Mandatory repo
+    |- orchestration    |
     |- mystorepanel     <- This repo
-
-✅ Orchestration repo mandatory because the Dockerfile used to build these services are located in the `orchestration/docker/` directory.
 
 ### Getting Started
 
