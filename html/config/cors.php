@@ -24,6 +24,10 @@ return [
         'http://template1.test',
         'http://template2.test',
         'http://template3.test',
+        'http://template4.test',
+        'http://template5.test',
+        'http://template6.test',
+        'http://template7.test',
         'https://egleesgourmet.com',
         'https://www.egleesgourmet.com'
     ],

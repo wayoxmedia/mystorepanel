@@ -43,7 +43,7 @@ class ContactController extends Controller
     }
 
     /**
-     * Save a Subscriber.
+     * Store a Contact Information.
      *
      * @param Request $request
      * @return JsonResponse
