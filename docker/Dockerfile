@@ -56,7 +56,5 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | b
     nvm install $NODE_VERSION && \
     nvm use $NODE_VERSION && \
     nvm alias default $NODE_VERSION && \
-    npm install -g npm@latest
-
-# Show installed versions
-RUN node -v && npm -v
+    npm install -g npm@10.7.0 && \
+    node -v && npm -v
