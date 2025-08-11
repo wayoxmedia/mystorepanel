@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\SiteResolveController;
 use App\Http\Controllers\Api\SubscriberController;
+use App\Http\Controllers\Api\TenantPagesController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -45,3 +47,9 @@ Route::get('/subscribers/{id}', [SubscriberController::class, 'show']);
 
 // Get Subscribers List (GET)
 Route::get('/subscribers', [SubscriberController::class, 'index']);
+
+Route::middleware('s2s')->group(function () {
+    Route::get('/sites/resolve', [SiteResolveController::class, 'resolveByDomain']);
+    Route::get('/tenants/{tenant}/pages', [TenantPagesController::class, 'show']);
+});
+Route::get('/ping', fn () => ['ok' => true]);

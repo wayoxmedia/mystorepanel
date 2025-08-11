@@ -51,7 +51,9 @@ class SubscriberController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created subscriber in our system.
+     *
+     * Required fields: iptAddress, selAddressType
      * @param Request $request
      * @return JsonResponse
      * @throws GuzzleException On Geolocation API failure.

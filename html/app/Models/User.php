@@ -4,12 +4,15 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 /**
  * Class User
+ * @property mixed $tenant_id
+ * @property mixed|string $role
  */
 class User extends Authenticatable implements JWTSubject
 {
@@ -21,6 +24,8 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'tenant_id',
+        'role',
     ];
 
     /**
@@ -64,5 +69,13 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims(): array
     {
         return [];
+    }
+
+    /**
+     * The tenant this user belongs to (single-tenant per user).
+     */
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }
