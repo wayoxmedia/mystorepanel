@@ -166,8 +166,10 @@ class AuthController extends Controller
 
     /**
      * Extract role names from the user model.
-     * Supports spatie/laravel-permission via getRoleNames(),
-     * JSON/array "roles" attribute, or CSV fallback.
+     * Supports:
+     *  - spatie getRoleNames()
+     *  - "roles" (array/JSON/CSV)
+     *  - "role"  (single string, or CSV/pipe like "admin|editor")
      */
     private function extractRoles($user): array
     {
@@ -197,23 +199,27 @@ class AuthController extends Controller
         // Generic "roles" attribute – array or JSON or CSV
         $roles = data_get($user, 'roles');
 
+        // Fallback to singular "role"
+        if (empty($roles)) {
+            $roles = data_get($user, 'role');
+        }
+
         if (is_array($roles)) {
             return array_values($roles);
         }
 
         if (is_string($roles)) {
+            // JSON array?
             $decoded = json_decode($roles, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 return array_values($decoded);
             }
 
-            // CSV fallback: "admin,editor"
+            // CSV or pipe-delimited: "admin,editor" or "admin|editor"
+            $parts = preg_split('/[|,]/', $roles, -1, PREG_SPLIT_NO_EMPTY) ?: [];
             return array_values(
                 array_filter(
-                    array_map(
-                        'trim',
-                        explode(',', $roles)
-                    )
+                    array_map('trim', $parts)
                 )
             );
         }
