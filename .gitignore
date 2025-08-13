@@ -1,6 +1,7 @@
 ### App
 .env
 .env.prod
+.env.local
 xinfo.php
 
 ### IDE

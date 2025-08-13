@@ -13,24 +13,26 @@ You must have Docker installed and running properly.
 
 ### Folder Structure
 
-You should have already a folder structure like this:
+You should end up with a folder 📁 structure like this:
 
     YourDevFolder
-    |- EgleesGourmet
-    |- orchestration
-    |- myStorePanel     <- This repo
+    |- template1        |
+    |- ...              | <- Optional repos
+    |- template7        |
+    |- orchestration    |
+    |- mystorepanel     <- This repo
 
 ### Getting Started
 
 Go to YourDevFolder and clone this repo using git
 
 ```sh
-git clone git@github.com:wayoxmedia/myStorePanel.git
+git clone git@github.com:wayoxmedia/mystorepanel.git
 ```
 cd into your app
 
 ```sh
-cd myStorePanel
+cd mystorepanel
 ```
 
 get a copy of the actual .env file form admins or create your own .env file and edit some values.
