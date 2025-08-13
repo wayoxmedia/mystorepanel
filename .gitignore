@@ -1,5 +1,7 @@
 ### App
 .env
+.env.prod
+xinfo.php
 
 ### IDE
 .idea/
