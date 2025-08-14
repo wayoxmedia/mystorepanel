@@ -2,46 +2,63 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\PagesController;
+use App\Http\Controllers\Api\SiteResolveController;
 use App\Http\Controllers\Api\SubscriberController;
+use App\Http\Controllers\Api\TenantPagesController;
 use Illuminate\Support\Facades\Route;
 
 /**
- * Auth Routes (JWT protected)
+ *|--------------------------------------------------------------------------
+ *| API Routes
+ *|--------------------------------------------------------------------------
+ *| This file consolidates existing endpoints and the JWT auth contract
+ *| consumed by template1 (frontend). Endpoints preserved as-is, grouped
+ *| under an 'auth' prefix with route names added for consistency.
  */
-// Group Auth (POST and GET) routes under auth:api middleware.
-Route::middleware('auth:api')->group(function () {
-    Route::get('/auth/me', [AuthController::class, 'me']);
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+// --- Auth (JWT) ---
+Route::prefix('auth')->name('api.auth.')->group(function () {
+    // Public login (no middleware)
+    Route::post('/login', [AuthController::class, 'login'])
+        ->name('login');
+
+    // Protected by JWT guard (api)
+    Route::middleware('auth:api')->group(function () {
+        Route::get('/me', [AuthController::class, 'me'])
+            ->name('me');
+        Route::post('/logout', [AuthController::class, 'logout'])
+            ->name('logout');
+        Route::post('/refresh', [AuthController::class, 'refresh'])
+            ->name('refresh');
+    });
 });
 
-/**
- * No Authentication required (Public) Routes
- */
-// Login (POST)
-Route::post('/auth/login', [AuthController::class, 'login']);
+// --- Contact Routes ---
+Route::post('/contact-form', [ContactController::class, 'store'])
+    ->name('api.contacts.store');
+Route::get('/contacts/{id}', [ContactController::class, 'show'])
+    ->name('api.contacts.show');
+Route::get('/contacts', [ContactController::class, 'index'])
+    ->name('api.contacts.index');
 
-/**
- * Contact Routes
- */
-// Send Contact Form (POST)
-Route::post('/contact-form', [ContactController::class, 'store']);
+// --- Subscriber Routes ---
+Route::post('/subscribe-form', [SubscriberController::class, 'store'])
+    ->name('api.subscribers.store');
+Route::get('/subscribers/{id}', [SubscriberController::class, 'show'])
+    ->name('api.subscribers.show');
+Route::get('/subscribers', [SubscriberController::class, 'index'])
+    ->name('api.subscribers.index');
 
-// Get Contact by ID (GET)
-Route::get('/contacts/{id}', [ContactController::class, 'show']);
+// --- S2S (server-to-server) ---
+Route::middleware('s2s')->group(function () {
+    Route::get('/sites/resolve', [SiteResolveController::class, 'resolveByDomain'])
+        ->name('api.s2s.sites.resolve');
+    Route::get('/tenants/{tenant}/pages', [TenantPagesController::class, 'show'])
+        ->name('api.s2s.tenants.pages.show');
+});
 
-// Get Contacts List (GET)
-Route::get('/contacts', [ContactController::class, 'index']);
-
-
-/**
- * Subscriber Routes
- */
-// Subscribe Form (POST)
-Route::post('/subscribe-form', [SubscriberController::class, 'store']);
-
-// Get Subscriber by ID (GET)
-Route::get('/subscribers/{id}', [SubscriberController::class, 'show']);
-
-// Get Subscribers List (GET)
-Route::get('/subscribers', [SubscriberController::class, 'index']);
+// --- Public (tenant pages, ping) ---
+Route::get('/ping', fn () => ['ok' => true])
+    ->name('api.ping');
+Route::get('/tenants/{tenant}/pages', [PagesController::class, 'show'])
+    ->name('api.tenants.pages.show');

@@ -6,18 +6,17 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * This class is responsible for registering application services and bootstrapping them.
- * It also forces HTTPS in production environment.
+ * Application-level service provider.
+ * Use this for bindings, macros, and environment-specific tweaks.
  */
 class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
-     * @return void
      */
     public function register(): void
     {
-        //
+        // Register container bindings here if needed.
     }
 
     /**
@@ -26,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production so generated URLs are secure.
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }

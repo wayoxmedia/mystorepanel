@@ -28,6 +28,7 @@ return [
         'http://template5.test',
         'http://template6.test',
         'http://template7.test',
+        'http://mystorepanel.test',
         'https://egleesgourmet.com',
         'https://www.egleesgourmet.com'
     ],
