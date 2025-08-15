@@ -30,7 +30,8 @@ return [
         'http://template7.test',
         'http://mystorepanel.test',
         'https://egleesgourmet.com',
-        'https://www.egleesgourmet.com'
+        'https://www.egleesgourmet.com',
+        'http://web-templates.test',
     ],
 
     'allowed_origins_patterns' => [],
