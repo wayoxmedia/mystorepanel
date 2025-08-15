@@ -22,7 +22,7 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'email'    => ['required', 'string', 'email'],
+            'email'    => ['required', 'string', 'email', 'min:6'],
             'password' => ['required', 'string', 'min:8'],
         ]);
 
@@ -33,7 +33,7 @@ class AuthController extends Controller
 
         $token = auth('api')->attempt($credentials);
         if (!$token) {
-            return response()->json(['error' => 'Unauthorized - Failed'], 401);
+            return response()->json(['error' => 'Unauthorized - Please check your credentials.'], 401);
         }
 
         $user       = auth('api')->user();
@@ -55,11 +55,17 @@ class AuthController extends Controller
 
     /**
      * Logout the user.
+     *
      * This endpoint is protected by auth:api middleware.
+     *
      * It will invalidate the current token and return a 204 No Content response.
+     *
      * If the user is already logged out, it will log the exception but not return it to the client.
+     *
      * This prevents leaking sensitive information and keeps the logout process idempotent.
+     *
      * If the user is already logged out, we can safely ignore this.
+     *
      * This is a common practice to avoid exposing internal errors.
      * The user will still receive a 204 No Content response.
      *
