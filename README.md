@@ -16,10 +16,11 @@ You must have Docker installed and running properly.
 You should end up with a folder 📁 structure like this:
 
     YourDevFolder
-    |- template1        |
-    |- ...              | <- Optional repos
-    |- template7        |
-    |- orchestration    |
+    |- template1
+    |- ...
+    |- template7
+    |- web-templates
+    |- orchestration
     |- mystorepanel     <- This repo
 
 ### Getting Started
@@ -100,7 +101,7 @@ nano .env
 ```
 Locate and edit the DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME and DB_PASSWORD variables.
 
-```text
+```dotenv
 DB_CONNECTION=REQUEST_TO_ADMINS
 DB_HOST=REQUEST_TO_ADMINS
 DB_PORT=REQUEST_TO_ADMINS
@@ -111,10 +112,24 @@ DB_PASSWORD=REQUEST_TO_ADMINS
 
 While there, you can also check if exists or edit the JWT_TTL variable.
 
-```text
+```dotenv
 JWT_TTL=ASK_ADMINS
 ```
 Make sure you have a recent version of the .env file, as some variables may change over time. Contact the admins if you need to update your .env file.
+
+Using local (End to End) encryption is recommended, make sure you use the following variables in your .env file:
+
+```dotenv
+SERVICE_TOKEN=replace-with-a-long-random-string
+```
+To do so, run the following command to generate a random string:
+
+```sh
+php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
+```
+
+Copy this string and paste it in the SERVICE_TOKEN variable in your .env file AND also in the .env file of the web-templates folder. Both .env files must have the same SERVICE_TOKEN value.
+
 
 ### Updating your hosts file
 MacOS & Linux

@@ -36,6 +36,22 @@ class AppServiceProvider extends ServiceProvider
         }
 
         /**
+         * Default API limiter (used by 'throttle:api').
+         * 60 req/min, keyed by authenticated user id or fallback to IP.
+         */
+        RateLimiter::for('api', function (Request $request) {
+            $key = $request->user()?->getAuthIdentifier()
+                ? 'api|user:' . $request->user()->getAuthIdentifier()
+                : 'api|ip:' . $request->ip();
+
+            return [
+                Limit::perMinute(60)
+                    ->by($key)
+                    ->response(fn () => throttleCallback('Too many requests. Try again in 60 seconds.')),
+            ];
+        });
+
+        /**
          * Login limiter: 6 attempts/min by (email + IP).
          *
          * @todo Consider:
