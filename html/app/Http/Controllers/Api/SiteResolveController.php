@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Site;
@@ -15,7 +16,7 @@ class SiteResolveController extends Controller
      * GET /api/sites/resolve?domain=template1.test
      * Resolves a site by domain and returns: site, tenant, template, settings.
      */
-    public function resolveByDomain(Request $request)
+    public function resolveByDomain(Request $request): SiteResolveResource|JsonResponse
     {
         $request->validate([
             'domain' => ['required', 'string', 'max:255'],

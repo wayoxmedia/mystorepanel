@@ -10,7 +10,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class SiteResolveResource extends JsonResource
 {
     /**
-     * @param array $resource Structure:
+     * @param array $request Structure:
      *  [
      *    'site' => \App\Models\Site,
      *    'tenant' => \App\Models\Tenant,
