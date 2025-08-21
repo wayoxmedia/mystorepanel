@@ -10,11 +10,11 @@ use Illuminate\Database\Seeder;
 
 class ThemeSettingsTableSeeder extends Seeder
 {
-    /**
-     * Seed basic theme settings for the demo tenant + default template.
-     */
-    public function run(): void
-    {
-        //
-    }
+  /**
+   * Seed basic theme settings for the demo tenant + default template.
+   */
+  public function run(): void
+  {
+    //
+  }
 }

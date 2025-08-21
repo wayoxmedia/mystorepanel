@@ -10,11 +10,11 @@ use Illuminate\Database\Seeder;
 
 class SitesTableSeeder extends Seeder
 {
-    /**
-     * Bind a domain to the demo tenant + default template.
-     */
-    public function run(): void
-    {
-        //
-    }
+  /**
+   * Bind a domain to the demo tenant + default template.
+   */
+  public function run(): void
+  {
+    //
+  }
 }

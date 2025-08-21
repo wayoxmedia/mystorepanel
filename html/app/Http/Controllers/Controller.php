@@ -7,8 +7,5 @@ namespace App\Http\Controllers;
  */
 abstract class Controller
 {
-  /**
-   * Constructor for the base controller.
-   */
-  public function __construct() {}
+  //
 }
