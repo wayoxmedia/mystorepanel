@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class ThemeSetting extends Model
 {
-    protected $fillable = ['tenant_id', 'template_id', 'key', 'value'];
+  protected $fillable = ['tenant_id', 'template_id', 'key', 'value'];
 
-    protected $casts = [
-        'value' => 'array',
-    ];
+  protected $casts = [
+    'value' => 'array',
+  ];
 }

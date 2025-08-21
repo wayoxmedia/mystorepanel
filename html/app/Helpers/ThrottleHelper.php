@@ -5,10 +5,10 @@ use Illuminate\Http\JsonResponse;
 /**
  * Throttle Callback
  *
- * @param string $msg
+ * @param  string  $msg
  * @return JsonResponse
  */
 function throttleCallback(string $msg): JsonResponse
 {
-    return response()->json(['message' => $msg], 429);
+  return response()->json(['message' => $msg], 429);
 }
