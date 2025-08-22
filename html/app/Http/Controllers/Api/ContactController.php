@@ -18,6 +18,7 @@ class ContactController extends Controller
   /** @var ContactService */
   protected ContactService $contactService;
 
+  /** @var GeolocationService */
   protected GeolocationService $geolocationService;
 
   /**

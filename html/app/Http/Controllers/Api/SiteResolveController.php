@@ -3,18 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Site;
 use App\Models\ThemeSetting;
 use App\Http\Resources\SiteResolveResource;
+use Throwable;
 
+/**
+ * Class SiteResolveController
+ *
+ * Handles resolving a site by its domain, returning site, tenant, template, and settings.
+ */
 class SiteResolveController extends Controller
 {
   /**
    * GET /api/sites/resolve?domain=template1.test
    * Resolves a site by domain and returns: site, tenant, template, settings.
+   *
+   * @param  Request  $request
+   * @return SiteResolveResource|JsonResponse
+   * @throws Exception
+   * @throws Throwable
    */
   public function resolveByDomain(Request $request): SiteResolveResource|JsonResponse
   {
@@ -63,6 +75,9 @@ class SiteResolveController extends Controller
 
   /**
    * Normalize incoming domains (strip scheme, www, and trailing slash).
+   *
+   * @param  string  $domain
+   * @return string
    */
   protected function normalizeDomain(string $domain): string
   {

@@ -18,6 +18,7 @@ class SubscriberController extends Controller
   /** @var SubscriberService */
   protected SubscriberService $subscriberService;
 
+  /** @var GeolocationService */
   protected GeolocationService $geolocationService;
 
   /**

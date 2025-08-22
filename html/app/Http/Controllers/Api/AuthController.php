@@ -162,6 +162,8 @@ class AuthController extends Controller
 
   /**
    * JWT TTL (minutes) → seconds.
+   *
+   * @return integer
    */
   private function getTtlSeconds(): int
   {
@@ -171,8 +173,11 @@ class AuthController extends Controller
 
   /**
    * Normalize the user for API responses.
+   *
+   * @param  mixed  $user
+   * @return array
    */
-  private function transformUser($user): array
+  private function transformUser(mixed $user): array
   {
     if (!$user) {
       return [];
@@ -194,8 +199,10 @@ class AuthController extends Controller
    *  - spatie getRoleNames()
    *  - "roles" (array/JSON/CSV)
    *  - "role"  (single string, or CSV/pipe like "admin|editor")
+   * @param  mixed $user
+   * @return array
    */
-  private function extractRoles($user): array
+  private function extractRoles(mixed $user): array
   {
     if (!$user) {
       return [];

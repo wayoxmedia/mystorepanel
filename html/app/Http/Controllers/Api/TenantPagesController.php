@@ -3,17 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Tenant;
 use App\Models\Page;
 use App\Http\Resources\PageResource;
 
+/**
+ * Class TenantPagesController
+ *
+ * Handles requests for tenant-specific pages.
+ * Provides an API endpoint to retrieve a single page by slug for a specific tenant.
+ */
 class TenantPagesController extends Controller
 {
   /**
    * GET /api/tenants/{tenant}/pages?slug=/about
+   *
    * Returns a single page for the given tenant and slug.
+   *
+   * @param  Request  $request
+   * @param  Tenant   $tenant
+   * @return JsonResponse|JsonResource
    */
   public function show(Request $request, Tenant $tenant)
   {
@@ -42,6 +55,9 @@ class TenantPagesController extends Controller
 
   /**
    * Normalize slugs and treat empty as root "/".
+   *
+   * @param  string $slug
+   * @return string
    */
   protected function normalizeSlug(string $slug): string
   {
