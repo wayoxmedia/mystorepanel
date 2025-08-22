@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -13,6 +14,11 @@ use Illuminate\Routing\Controller;
  */
 class PagesController extends Controller
 {
+  /**
+   * @param  Request  $request
+   * @param  integer  $tenant
+   * @return JsonResponse
+   */
     public function show(Request $request, int $tenant)
     {
         // Lee slug del query y normaliza

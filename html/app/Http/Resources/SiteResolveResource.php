@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -10,15 +11,18 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class SiteResolveResource extends JsonResource
 {
   /**
-   * @param  array  $request  Structure:
+   * Transform the resource into an array.
    *  [
    *    'site' => \App\Models\Site,
    *    'tenant' => \App\Models\Tenant,
    *    'template' => \App\Models\Template,
    *    'settings' => array
    *  ]
+   * @param Request $request Structure of the request data.
+   *
+   * @return array
    */
-  public function toArray($request): array
+  public function toArray(Request $request): array
   {
     $site = $this->resource['site'];
     $tenant = $this->resource['tenant'];

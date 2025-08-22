@@ -7,6 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Middleware to verify service token for server-to-server communication.
+ *
+ * This middleware checks the "X-Service-Token" header or the "service_token" query parameter
+ * against a configured service token in the environment.
+ * It is intended for use in server-to-server API calls to ensure secure communication.
+ */
 class VerifyServiceToken
 {
   /**
@@ -14,6 +21,10 @@ class VerifyServiceToken
    *
    * Enforces a shared secret for server-to-server calls.
    * Looks for the token in the 'X-Service-Token' header (preferred) or ?service_token= (dev only).
+   *
+   * @param  Request  $request
+   * @param  Closure  $next
+   * @return Response
    */
   public function handle(Request $request, Closure $next): Response
   {

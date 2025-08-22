@@ -17,7 +17,10 @@
     <arg name="colors" />
     <rule ref="PSR2">
         <exclude name="Squiz.Commenting.FunctionComment.MissingParamComment" />
+        <exclude name="Squiz.Commenting.FunctionComment.SpacingAfterParamType" />
         <exclude name="Squiz.Commenting.ClassComment.TagNotAllowed" />
+        <exclude name="Generic.WhiteSpace.ScopeIndent.Incorrect" />
+        <exclude name="Generic.WhiteSpace.ScopeIndent.IncorrectExact" />
         <!--
         <exclude name="Generic.Files.LineLength.TooLong" />
         <exclude name="Squiz.Commenting.FunctionComment.EmptyThrows" />
