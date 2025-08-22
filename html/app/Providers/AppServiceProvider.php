@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
@@ -16,6 +18,10 @@ use Illuminate\Support\Str;
  */
 class AppServiceProvider extends ServiceProvider
 {
+  protected $policies = [
+    // Model => Policy
+  ];
+
   /**
    * Register any application services.
    */

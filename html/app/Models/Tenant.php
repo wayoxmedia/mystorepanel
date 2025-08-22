@@ -6,11 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * Class Tenant.
  * @property mixed $id
+ * @property mixed $name
+ * @property mixed $slug
+ * @property mixed $template_slug
+ * @property mixed $email
+ * @property mixed $phone
+ * @property mixed $primary_domain
+ * @property mixed $allowed_origins
+ * @property mixed $status
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
  */
 class Tenant extends Model
 {
-  protected $fillable = ['name', 'slug', 'email', 'phone'];
+  protected $fillable = [
+    'name',
+    'slug',
+    'template_slug',
+    'email',
+    'phone',
+    'primary_domain',
+    'allowed_origins',
+    'status',
+  ];
 
   /**
    * The attributes that should be cast to native types.
@@ -20,6 +40,7 @@ class Tenant extends Model
   protected $casts = [
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
+    'allowed_origins' => 'array',
   ];
 
   /**
