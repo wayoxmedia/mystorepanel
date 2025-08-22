@@ -11,34 +11,34 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Site extends Model
 {
-    protected $fillable = ['tenant_id', 'template_id', 'domain', 'meta'];
+  protected $fillable = ['tenant_id', 'template_id', 'domain', 'meta'];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'meta' => 'array',
-    ];
+  /**
+   * The attributes that should be cast to native types.
+   *
+   * @var array
+   */
+  protected $casts = [
+    'meta' => 'array',
+  ];
 
-    /**
-     * Tenant that owns this site.
-     *
-     * @return BelongsTo
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
+  /**
+   * Tenant that owns this site.
+   *
+   * @return BelongsTo
+   */
+  public function tenant(): BelongsTo
+  {
+    return $this->belongsTo(Tenant::class);
+  }
 
-    /**
-     * Template that this site uses.
-     *
-     * @return BelongsTo
-     */
-    public function template(): BelongsTo
-    {
-        return $this->belongsTo(Template::class);
-    }
+  /**
+   * Template that this site uses.
+   *
+   * @return BelongsTo
+   */
+  public function template(): BelongsTo
+  {
+    return $this->belongsTo(Template::class);
+  }
 }

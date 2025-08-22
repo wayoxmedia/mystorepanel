@@ -11,32 +11,32 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Contact extends Model
 {
-    use HasFactory;
+  use HasFactory;
 
-    // Define the table name if it's not the default "contacts"
-    // protected $table = 'contacts';
+  // Define the table name if it's not the default "contacts"
+  // protected $table = 'contacts';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var string[] $fillable
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'message',
-        'store_id',
-        'user_ip',
-        'geo_location'
-    ];
+  /**
+   * The attributes that are mass assignable.
+   *
+   * @var string[] $fillable
+   */
+  protected $fillable = [
+    'name',
+    'email',
+    'message',
+    'store_id',
+    'user_ip',
+    'geo_location'
+  ];
 
-    /**
-     * Field 'geo_location' is JSON, adding cast
-     * so it can be handled as an array automatically.
-     *
-     * @var array<string, string> $casts
-     */
-    protected $casts = [
-        'geo_location' => 'array',
-    ];
+  /**
+   * Field 'geo_location' is JSON, adding cast
+   * so it can be handled as an array automatically.
+   *
+   * @var array<string, string> $casts
+   */
+  protected $casts = [
+    'geo_location' => 'array',
+  ];
 }

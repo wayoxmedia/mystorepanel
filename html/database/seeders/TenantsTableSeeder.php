@@ -9,11 +9,11 @@ use Illuminate\Support\Str;
 
 class TenantsTableSeeder extends Seeder
 {
-    /**
-     * Seed a demo tenant.
-     */
-    public function run(): void
-    {
-        //
-    }
+  /**
+   * Seed a demo tenant.
+   */
+  public function run(): void
+  {
+    //
+  }
 }

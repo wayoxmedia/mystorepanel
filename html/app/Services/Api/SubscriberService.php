@@ -11,77 +11,77 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class SubscriberService
 {
-    /**
-     * Create a new class instance.
-     */
-    public function __construct()
-    {
-        //
+  /**
+   * Create a new class instance.
+   */
+  public function __construct()
+  {
+    //
+  }
+
+  /**
+   * @param  array  $data
+   * @return Subscriber
+   */
+  public function store(array $data): Subscriber
+  {
+    if (is_string($data['geo_location'])) {
+      $data['geo_location'] = json_decode($data['geo_location'], true);
     }
 
-    /**
-     * @param array $data
-     * @return Subscriber
-     */
-    public function store(array $data): Subscriber
-    {
-        if (is_string($data['geo_location'])) {
-            $data['geo_location'] = json_decode($data['geo_location'], true);
-        }
+    return Subscriber::query()->create([
+      'store_id' => $data['store_id'] ?? null,
+      'address' => $data['iptAddress'],
+      'address_type' => $data['selAddressType'],
+      'user_ip' => $data['user_ip'] ?? null,
+      'geo_location' => $data['geo_location'] ?? null,
+      'active' => 1,
+    ]);
+  }
 
-        return Subscriber::query()->create([
-            'store_id' => $data['store_id'] ?? null,
-            'address' => $data['iptAddress'],
-            'address_type' => $data['selAddressType'],
-            'user_ip' => $data['user_ip'] ?? null,
-            'geo_location' => $data['geo_location'] ?? null,
-            'active' => 1,
-        ]);
+  /**
+   * @param  array  $data
+   * @return boolean
+   */
+  public function updateActiveStatus(array $data): bool
+  {
+    return Subscriber::query()
+      ->where('address', $data['iptAddress'])
+      ->where('address_type', $data['selAddressType'])
+      ->update([
+        'active' => 1,
+      ]);
+  }
+
+  /**
+   * @param  integer  $id
+   * @return Subscriber|null
+   */
+  public function showById(int $id): ?Subscriber
+  {
+    $subscriber = Subscriber::find($id);
+
+    if ($subscriber) {
+      return $subscriber;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * @param  string|null  $ip
+   * @return mixed
+   * @throws GuzzleException On HTTP request failure.
+   */
+  public function getGeolocationData(?string $ip): mixed
+  {
+    if (is_null($ip)) {
+      return null;
     }
 
-    /**
-     * @param array $data
-     * @return boolean
-     */
-    public function updateActiveStatus(array $data): bool
-    {
-        return Subscriber::query()
-            ->where('address', $data['iptAddress'])
-            ->where('address_type', $data['selAddressType'])
-            ->update([
-                'active' => 1,
-            ]);
-    }
+    $client = new Client();
+    $response = $client->get('http://ip-api.com/json/'.$ip);
 
-    /**
-     * @param integer $id
-     * @return Subscriber|null
-     */
-    public function showById(int $id): ?Subscriber
-    {
-        $subscriber = Subscriber::find($id);
-
-        if ($subscriber) {
-            return $subscriber;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @param string|null $ip
-     * @return mixed
-     * @throws GuzzleException On HTTP request failure.
-     */
-    public function getGeolocationData(?string $ip): mixed
-    {
-        if (is_null($ip)) {
-            return null;
-        }
-
-        $client = new Client();
-        $response = $client->get('http://ip-api.com/json/' . $ip);
-
-        return $response->getBody()->getContents();
-    }
+    return $response->getBody()->getContents();
+  }
 }

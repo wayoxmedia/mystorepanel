@@ -15,58 +15,59 @@ use Illuminate\Http\Request;
  */
 class ContactController extends Controller
 {
-    /** @var ContactService */
-    protected ContactService $contactService;
+  /** @var ContactService */
+  protected ContactService $contactService;
 
-    protected GeolocationService $geolocationService;
+  /** @var GeolocationService */
+  protected GeolocationService $geolocationService;
 
-    /**
-     * ContactController constructor.
-     */
-    public function __construct()
-    {
-        $this->contactService = new ContactService();
-        $this->geolocationService = new GeolocationService();
-    }
+  /**
+   * ContactController constructor.
+   */
+  public function __construct()
+  {
+    $this->contactService = new ContactService();
+    $this->geolocationService = new GeolocationService();
+  }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return JsonResponse
-     */
-    public function index(): JsonResponse
-    {
-        $contacts = Contact::all();
-        return response()->json([
-            'data' => $contacts
-        ]);
-    }
+  /**
+   * Display a listing of the resource.
+   *
+   * @return JsonResponse
+   */
+  public function index(): JsonResponse
+  {
+    $contacts = Contact::all();
+    return response()->json([
+      'data' => $contacts
+    ]);
+  }
 
-    /**
-     * Store a Contact Information.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     * @throws GuzzleException On Geolocation API failure.
-     */
-    public function store(Request $request): JsonResponse
-    {
-        // Validate the request
-        $validated = $request->validate([
-            'iptName' => 'required|string|max:30',
-            'iptEmail' => 'required|email|max:50',
-            'iptMessage' => 'required|string|max:500',
-        ]);
+  /**
+   * Store a Contact Information.
+   *
+   * @param  Request  $request
+   * @return JsonResponse
+   * @throws GuzzleException On Geolocation API failure.
+   */
+  public function store(Request $request): JsonResponse
+  {
+    // Validate the request
+    $validated = $request->validate([
+      'iptName' => 'required|string|max:30',
+      'iptEmail' => 'required|email|max:50',
+      'iptMessage' => 'required|string|max:500',
+    ]);
 
-        $ip = $request->ip();
-        $validated['user_ip'] = $ip;
-        $validated['store_id'] = 1; // This is a placeholder for EG, the actual store_id will be set later.
+    $ip = $request->ip();
+    $validated['user_ip'] = $ip;
+    $validated['store_id'] = 1; // This is a placeholder for EG, the actual store_id will be set later.
 
-        // Get the geolocation data using an external API.
-        $validated['geo_location'] = $this->geolocationService->getGeolocationByIp($ip);
+    // Get the geolocation data using an external API.
+    $validated['geo_location'] = $this->geolocationService->getGeolocationByIp($ip);
 
-        $this->contactService->store($validated);
+    $this->contactService->store($validated);
 
-        return response()->json(['message' => 'Form submitted successfully']);
-    }
+    return response()->json(['message' => 'Form submitted successfully']);
+  }
 }

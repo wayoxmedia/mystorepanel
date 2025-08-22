@@ -10,45 +10,45 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Tenant extends Model
 {
-    protected $fillable = ['name', 'slug', 'email', 'phone'];
+  protected $fillable = ['name', 'slug', 'email', 'phone'];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+  /**
+   * The attributes that should be cast to native types.
+   *
+   * @var array
+   */
+  protected $casts = [
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+  ];
 
-    /**
-     * Sites that belong to this tenant.
-     *
-     * @return HasMany
-     */
-    public function sites(): HasMany
-    {
-        return $this->hasMany(Site::class);
-    }
+  /**
+   * Sites that belong to this tenant.
+   *
+   * @return HasMany
+   */
+  public function sites(): HasMany
+  {
+    return $this->hasMany(Site::class);
+  }
 
-    /**
-     * Pages that belong to this tenant.
-     *
-     * @return HasMany
-     */
-    public function pages(): HasMany
-    {
-        return $this->hasMany(Page::class);
-    }
+  /**
+   * Pages that belong to this tenant.
+   *
+   * @return HasMany
+   */
+  public function pages(): HasMany
+  {
+    return $this->hasMany(Page::class);
+  }
 
-    /**
-     * Users that belong to this tenant.
-     *
-     * @return HasMany
-     */
-    public function users(): HasMany
-    {
-        return $this->hasMany(User::class);
-    }
+  /**
+   * Users that belong to this tenant.
+   *
+   * @return HasMany
+   */
+  public function users(): HasMany
+  {
+    return $this->hasMany(User::class);
+  }
 }
