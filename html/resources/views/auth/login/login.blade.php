@@ -42,7 +42,7 @@
       </div>
 
       <div class="text-center mt-3">
-        <a class="small text-muted" href="#">Forgot your password?</a>
+        <a class="small text-muted" href="{{ route('password.request') }}">Forgot your password?</a>
       </div>
     </div>
   </div>

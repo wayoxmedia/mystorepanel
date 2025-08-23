@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -29,6 +31,22 @@ Route::get('/invitation/accept/{token}', [InvitationAcceptanceController::class,
 Route::post('/invitation/accept', [InvitationAcceptanceController::class, 'store'])
   ->name('invitations.accept.store');
 
+
+Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+  ->name('password.request');
+
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+  ->name('password.email')->middleware('throttle:3,1');
+
+Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+  ->name('password.reset');
+
+Route::post('/reset-password', [NewPasswordController::class, 'store'])
+  ->name('password.update')->middleware('throttle:3,1');
+
+/**
+ * Protected Routes
+ */
 Route::middleware(['auth:web']) // add 'verified' if you enforce email verification
   ->prefix('admin')
   ->name('admin.')
