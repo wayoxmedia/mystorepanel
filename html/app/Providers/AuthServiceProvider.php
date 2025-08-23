@@ -48,5 +48,23 @@ class AuthServiceProvider extends ServiceProvider
       $sameTenant = $tenantId ? ((int)$user->tenant_id === (int)$tenantId) : true;
       return $isTenantManager && $sameTenant;
     });
+
+    // Impersonate other user.
+    Gate::define('impersonate-user', function (User $actor, User $target): bool {
+      // No sense impersonate yourself.
+      if ($actor->id === $target->id) return false;
+
+      // If superadmin, you can impersonate anyone (Gate::before allows it).
+      if ($actor->isPlatformSuperAdmin()) return true;
+
+      // Tenant Owner/Admin can impersonate ONLY users within their tenant.
+      if (! $actor->hasAnyRole(['tenant_owner', 'tenant_admin'])) return false;
+      if ((int)$actor->tenant_id !== (int)$target->tenant_id) return false;
+
+      // Don't allow impersonating a Platform Super Admin if you are not one
+      if ($target->isPlatformSuperAdmin()) return false;
+
+      return true;
+    });
   }
 }

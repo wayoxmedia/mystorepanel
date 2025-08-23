@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\LoginController;
@@ -57,4 +58,10 @@ Route::middleware(['auth:web']) // add 'verified' if you enforce email verificat
       ->name('users.create');
     Route::post('users', [UserController::class, 'store'])
       ->name('users.store');
+
+    // Impersonation routes
+    Route::post('impersonate/{user}', [ImpersonationController::class, 'start'])
+      ->name('impersonate.start');
+    Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])
+      ->name('impersonate.stop');
   });

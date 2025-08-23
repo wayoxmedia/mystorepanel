@@ -65,6 +65,21 @@
   </div>
 </nav>
 
+@if (session()->has('impersonator_id'))
+  <div class="bg-warning py-2">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div class="small">
+        <strong>Impersonating:</strong> {{ auth()->user()->email }}
+        <span class="text-muted ms-2">as requested by {{ session('impersonator_email') }}</span>
+      </div>
+      <form method="post" action="{{ route('admin.impersonate.stop') }}">
+        @csrf
+        <button class="btn btn-sm btn-dark">Stop impersonating</button>
+      </form>
+    </div>
+  </div>
+@endif
+
 <!-- Main content -->
 <main class="container">
   @if (session('success'))

@@ -1,4 +1,3 @@
-@php(xdebug_break())
 @extends('admin.layouts.app')
 
 @section('content')
@@ -67,6 +66,15 @@
             <td>
               <div class="fw-semibold">{{ $u->name }}</div>
               <div class="text-muted small">{{ $u->email }}</div>
+              @can('impersonate-user', $u)
+                <form method="post" action="{{ route('admin.impersonate.start', $u) }}" class="d-inline">
+                  @csrf
+                  <button class="btn btn-sm btn-outline-primary mt-1"
+                          onclick="return confirm('Impersonate {{ $u->email }}?');">
+                    Impersonate
+                  </button>
+                </form>
+              @endcan
             </td>
             <td>{{ $u->tenant?->name ?? '—' }}</td>
             <td>
