@@ -82,13 +82,7 @@
 
 <!-- Main content -->
 <main class="container">
-  @if (session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-  @endif
-  @if (session('error'))
-    <div class="alert alert-danger">{{ session('error') }}</div>
-  @endif
-
+  @include('admin.partials.flash')
   @yield('content')
 </main>
 
@@ -105,6 +99,9 @@
       $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': token } });
     }
   })();
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(el => el.remove());
+  }, 5000);
 </script>
 
 <!-- Place for page-specific scripts -->

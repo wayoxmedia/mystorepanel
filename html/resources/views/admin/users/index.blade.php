@@ -2,10 +2,6 @@
 
 @section('content')
   <div class="container">
-    @if(session('success'))
-      <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h1 class="h4 mb-0">Users</h1>
       <a href="{{ route('admin.users.create') }}" class="btn btn-primary">Create / Invite User</a>
@@ -36,10 +32,10 @@
       <div class="col-auto">
         <select name="status" class="form-select">
           <option value="">All statuses</option>
-          <option value="active" @selected(request('status')=='active')>active</option>
-          <option value="pending_invite" @selected(request('status')=='pending_invite')>pending_invite</option>
-          <option value="suspended" @selected(request('status')=='suspended')>suspended</option>
-          <option value="locked" @selected(request('status')=='locked')>locked</option>
+          <option value="active" @selected(request('status')=='active')>Active</option>
+          <option value="pending_invite" @selected(request('status')=='pending_invite')>Pending Invite</option>
+          <option value="suspended" @selected(request('status')=='suspended')>Suspended</option>
+          <option value="locked" @selected(request('status')=='locked')>Locked</option>
         </select>
       </div>
       <div class="col-auto">
@@ -80,6 +76,43 @@
             <td>
               @foreach($u->roles as $r)
                 <span class="badge text-bg-light border">{{ $r->name }}</span>
+                <div class="mt-1">
+                  <a class="btn btn-sm btn-outline-secondary" href="{{ route('admin.users.roles.edit', $u) }}">Manage roles</a>
+                </div>
+                {{-- State actions, only if you have permissions and you are NOT the same user --}}
+                @if(auth()->id() !== $u->id)
+                  <div class="mt-2 d-flex flex-wrap gap-1">
+                    {{-- Activate --}}
+                    @if($u->status !== 'active')
+                      <form method="post" action="{{ route('admin.users.status.update', $u) }}" onsubmit="return confirm('Activate {{ $u->email }}?');">
+                        @csrf
+                        <input type="hidden" name="status" value="active">
+                        <button class="btn btn-sm btn-success">Activate</button>
+                      </form>
+                    @endif
+
+                    {{-- Suspend --}}
+                    @if($u->status !== 'suspended')
+                      <form method="post" action="{{ route('admin.users.status.update', $u) }}" onsubmit="return confirm('Suspend {{ $u->email }}?');">
+                        @csrf
+                        <input type="hidden" name="status" value="suspended">
+                        <button class="btn btn-sm btn-outline-warning">Suspend</button>
+                      </form>
+                    @endif
+
+                    {{-- Lock --}}
+                    @if($u->status !== 'locked')
+                      <form method="post" action="{{ route('admin.users.status.update', $u) }}" onsubmit="return confirm('Lock {{ $u->email }}?');">
+                        @csrf
+                        <input type="hidden" name="status" value="locked">
+                        <button class="btn btn-sm btn-outline-danger">Lock</button>
+                      </form>
+                    @endif
+                  </div>
+                @endif
+
+                {{-- (Optional) Reason for Audit --}}
+                <input type="text" name="reason" value="Billing overdue #12345">
               @endforeach
             </td>
             <td><span class="badge text-bg-{{ $u->status === 'active' ? 'success' : 'secondary' }}">{{ $u->status }}</span></td>

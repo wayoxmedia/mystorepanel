@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\UserRoleController;
+use App\Http\Controllers\Admin\UserStatusController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
@@ -87,10 +89,19 @@ Route::middleware(['auth:web', 'verified'])
       ->name('users.create');
     Route::post('users', [UserController::class, 'store'])
       ->name('users.store');
+    Route::post('users/{user}/status', [UserStatusController::class, 'update'])
+      ->name('users.status.update')
+      ->middleware('throttle:12,1');
 
     // Impersonation routes
     Route::post('impersonate/{user}', [ImpersonationController::class, 'start'])
       ->name('impersonate.start');
     Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])
       ->name('impersonate.stop');
+
+    // User role management
+    Route::get('users/{user}/roles', [UserRoleController::class, 'edit'])
+      ->name('users.roles.edit');
+    Route::post('users/{user}/roles', [UserRoleController::class, 'update'])
+      ->name('users.roles.update');
   });

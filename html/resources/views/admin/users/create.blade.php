@@ -30,13 +30,25 @@
       </div>
 
       <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Full name</label>
-          <input type="text" name="name" value="{{ old('name') }}" class="form-control" required>
+        <div class="col-md-6 input-box">
+          <input type="text"
+                 id="name"
+                 name="name"
+                 value="{{ old('name') }}"
+                 class="form-control"
+                 placeholder=" "
+                 required>
+          <label for="name" class="form-label dynamic">Full name</label>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Email</label>
-          <input type="email" name="email" value="{{ old('email') }}" class="form-control" required>
+        <div class="col-md-6 input-box">
+          <input type="email"
+                 id="email"
+                 name="email"
+                 value="{{ old('email') }}"
+                 class="form-control"
+                 placeholder=" "
+                 required>
+          <label for="email" class="form-label dynamic">Email</label>
         </div>
 
         @if($tenants->count() >= 1)
@@ -94,3 +106,32 @@
     });
   </script>
 @endpush
+
+<style>
+  .input-box {
+    position: relative;
+    display: inline-block;
+  }
+  .dynamic {
+    position: absolute;
+    left: 12px;
+    top: 7px;
+    color: gray;
+    background: white; /* hides border behind label */
+    padding: 0 4px; /* adds space around text */
+    transition: 0.3s ease;
+    pointer-events: none;
+  }
+  input[type=text], input[type=email]:focus {
+    border-color: #0051ff;
+  }
+  /* Floating effect on focus or when input has text */
+  input[type="text"]:focus + label.dynamic,
+  input[type="text"]:not(:placeholder-shown) + label.dynamic,
+  input[type="email"]:focus + label.dynamic,
+  input[type="email"]:not(:placeholder-shown) + label.dynamic {
+    transform: translateY(-20px);
+    font-size: 12px;
+    color: #0051ff;
+  }
+</style>
