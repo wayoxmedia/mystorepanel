@@ -10,6 +10,8 @@ use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -61,49 +63,58 @@ class InvitationAcceptanceController extends Controller
     // Ensure the email is still free
     if (User::query()->where('email', $inv->email)->exists()) {
       // Mark invitation as accepted anyway to avoid reuse
-      $inv->update(['status' => 'accepted']);
+      $inv->update(['status' => 'accepted', 'expires_at' => now()]);
       return redirect('/')
         ->with('error', 'Email already in use. If this is you, try logging in.');
     }
 
-    // Create the user
-    $user = new User();
-    $user->name              = (string) $request->input('name');
-    $user->email             = $inv->email;
-    $user->tenant_id         = $inv->tenant_id;     // null for platform staff invites
-    $user->status            = 'active';
-    $user->password          = Hash::make((string) $request->input('password'));
-    // If your users table has email_verified_at (typical), we confirm here:
-    if ($user->isFillable('email_verified_at') || \Schema::hasColumn('users', 'email_verified_at')) {
-      $user->email_verified_at = now();
-    }
-    $user->save();
+    return DB::transaction(function () use ($request, $inv) {
+      // Crear usuario (SIN marcar verificado)
+      $user = new User();
+      $user->name      = (string) $request->input('name');
+      $user->email     = $inv->email;
+      $user->tenant_id = $inv->tenant_id;   // null para staff de plataforma
+      $user->status    = 'active';
+      $user->password  = Hash::make((string) $request->input('password'));
+      $user->save();
 
-    // Attach role if present
-    if ($inv->role_id) {
-      $user->roles()->syncWithoutDetaching([$inv->role_id]);
-    }
+      // Rol
+      if ($inv->role_id) {
+        $user->roles()->syncWithoutDetaching([$inv->role_id]);
+      }
 
-    // Close invitation
-    $inv->update(['status' => 'accepted']);
+      // Cerrar invitación (una sola vez) y “consumir” el token
+      $inv->update([
+        'status'     => 'accepted',
+        'expires_at' => now(),
+      ]);
 
-    // Audit
-    AuditLog::query()->create([
-      'actor_id'     => $user->id, // self-action
-      'action'       => 'invite.accepted',
-      'subject_type' => Invitation::class,
-      'subject_id'   => $inv->id,
-      'meta'         => [
-        'email'     => $inv->email,
-        'tenant_id' => $inv->tenant_id,
-        'role_id'   => $inv->role_id,
-      ],
-    ]);
+      // Auditoría
+      AuditLog::query()->create([
+        'actor_id'     => $user->id, // self-action
+        'action'       => 'invite.accepted',
+        'subject_type' => Invitation::class,
+        'subject_id'   => $inv->id,
+        'meta'         => [
+          'email'     => $inv->email,
+          'tenant_id' => $inv->tenant_id,
+          'role_id'   => $inv->role_id,
+        ],
+      ]);
 
-    // Optional: auto-login once we tengamos login listo.
-    // Auth::login($user);
+      // Auto-login con guard web
+      Auth::guard('web')->login($user);
+      request()->session()->regenerate();
 
-    return redirect('/')
-      ->with('success', 'Your account is ready. You can now log in.');
+      // Enviar verificación si el modelo implementa MustVerifyEmail
+      if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
+        $user->sendEmailVerificationNotification();
+      }
+
+      // Ir al aviso de verificación
+      return redirect()
+        ->route('verification.notice')
+        ->with('success', 'Account created. Please verify your email.');
+    });
   }
 }
