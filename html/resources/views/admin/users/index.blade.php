@@ -4,7 +4,14 @@
   <div class="container">
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h1 class="h4 mb-0">Users</h1>
-      <a href="{{ route('admin.users.create') }}" class="btn btn-primary">Create / Invite User</a>
+      @php(xdebug_break())
+      @php($disabled = $tenant && $seats && $seats['available'] <= 0)
+      <button class="btn btn-primary" {{ $disabled ? 'disabled' : '' }}>Invite User</button>
+      {{-- or --}}
+      <button class="btn btn-success" {{ $disabled ? 'disabled' : '' }}>Create User</button>
+      @if($disabled)
+        <div class="small text-muted mt-1">No seats available. Delete a user or increase the limit.</div>
+      @endif
     </div>
 
     <form method="get" class="row g-2 mb-3">
@@ -43,6 +50,18 @@
       </div>
     </form>
 
+    @if($tenant && $seats)
+      <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <div>
+          <strong>Seats:</strong> {{ $seats['used'] }} / {{ $seats['limit'] }}
+          <span class="text-muted ms-2">Available: {{ $seats['available'] }}</span>
+        </div>
+        @if($seats['available'] <= 0)
+          <span class="badge text-bg-warning">Limit reached</span>
+        @endif
+      </div>
+    @endif
+
     <div class="table-responsive">
       <table class="table table-striped align-middle">
         <thead>
@@ -63,7 +82,9 @@
               <div class="fw-semibold">{{ $u->name }}</div>
               <div class="text-muted small">{{ $u->email }}</div>
               @can('impersonate-user', $u)
-                <form method="post" action="{{ route('admin.impersonate.start', $u) }}" class="d-inline">
+                <form method="post"
+                      action="{{ route('admin.impersonate.start', $u) }}"
+                      class="d-inline">
                   @csrf
                   <button class="btn btn-sm btn-outline-primary mt-1"
                           onclick="return confirm('Impersonate {{ $u->email }}?');">
@@ -77,14 +98,17 @@
               @foreach($u->roles as $r)
                 <span class="badge text-bg-light border">{{ $r->name }}</span>
                 <div class="mt-1">
-                  <a class="btn btn-sm btn-outline-secondary" href="{{ route('admin.users.roles.edit', $u) }}">Manage roles</a>
+                  <a class="btn btn-sm btn-outline-secondary"
+                     href="{{ route('admin.users.roles.edit', $u) }}">Manage roles</a>
                 </div>
                 {{-- State actions, only if you have permissions and you are NOT the same user --}}
                 @if(auth()->id() !== $u->id)
                   <div class="mt-2 d-flex flex-wrap gap-1">
                     {{-- Activate --}}
                     @if($u->status !== 'active')
-                      <form method="post" action="{{ route('admin.users.status.update', $u) }}" onsubmit="return confirm('Activate {{ $u->email }}?');">
+                      <form method="post"
+                            action="{{ route('admin.users.status.update', $u) }}"
+                            onsubmit="return confirm('Activate {{ $u->email }}?');">
                         @csrf
                         <input type="hidden" name="status" value="active">
                         <button class="btn btn-sm btn-success">Activate</button>
@@ -93,7 +117,9 @@
 
                     {{-- Suspend --}}
                     @if($u->status !== 'suspended')
-                      <form method="post" action="{{ route('admin.users.status.update', $u) }}" onsubmit="return confirm('Suspend {{ $u->email }}?');">
+                      <form method="post"
+                            action="{{ route('admin.users.status.update', $u) }}"
+                            onsubmit="return confirm('Suspend {{ $u->email }}?');">
                         @csrf
                         <input type="hidden" name="status" value="suspended">
                         <button class="btn btn-sm btn-outline-warning">Suspend</button>
@@ -102,20 +128,35 @@
 
                     {{-- Lock --}}
                     @if($u->status !== 'locked')
-                      <form method="post" action="{{ route('admin.users.status.update', $u) }}" onsubmit="return confirm('Lock {{ $u->email }}?');">
+                      <form method="post" action="{{ route('admin.users.status.update', $u) }}"
+                            onsubmit="return confirm('Lock {{ $u->email }}?');">
                         @csrf
                         <input type="hidden" name="status" value="locked">
                         <button class="btn btn-sm btn-outline-danger">Lock</button>
                       </form>
                     @endif
+
+                    @if(auth()->id() !== $u->id)
+                      <form method="post" action="{{ route('admin.users.destroy', $u) }}"
+                            onsubmit="return confirm('Delete {{ $u->email }} permanently? This cannot be undone.');"
+                            class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                      </form>
+                    @endif
+
                   </div>
                 @endif
 
                 {{-- (Optional) Reason for Audit --}}
-                <input type="text" name="reason" value="Billing overdue #12345">
+                <input type="hidden" name="reason" value="Billing overdue #12345">
               @endforeach
             </td>
-            <td><span class="badge text-bg-{{ $u->status === 'active' ? 'success' : 'secondary' }}">{{ $u->status }}</span></td>
+            <td>
+              <span class="badge text-bg-{{ $u->status === 'active' ? 'success' : 'secondary' }}">{{ $u->status }}
+              </span>
+            </td>
             <td class="text-muted small">{{ $u->created_at?->format('Y-m-d H:i') }}</td>
           </tr>
         @empty

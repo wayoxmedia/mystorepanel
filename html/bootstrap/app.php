@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsureTenantManager;
 use App\Http\Middleware\VerifyServiceToken;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -26,7 +28,17 @@ return Application::configure(basePath: dirname(__DIR__))
       'auth' => Authenticate::class,
       'verified' => EnsureEmailIsVerified::class,
       's2s' => VerifyServiceToken::class,
+      'tenant.manager' => EnsureTenantManager::class,
     ]);
+  })
+  ->withSchedule(function (Schedule $schedule) {
+    // Expire invitations older than their expiration date (free seats)
+    $schedule->command('invitations:expire')
+      ->hourly()
+      ->onOneServer()
+      ->withoutOverlapping();
+    // Si prefieres otra cadencia:
+    // $schedule->command('invitations:expire')->everyFifteenMinutes()->onOneServer()->withoutOverlapping();
   })
   ->withExceptions(function (Exceptions $exceptions) {
     //

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property mixed $name
  * @property mixed $slug
  * @property mixed $scope
+ * @property mixed $id
  */
 class Role extends Model
 {

@@ -36,6 +36,25 @@
             Users
           </a>
         </li>
+        {{-- Invitations (solo para managers de tenant o SA) --}}
+        @php($isSA = auth()->user()?->isPlatformSuperAdmin())
+        @php($isToOrTa = auth()->user()?->hasAnyRole(['tenant_owner','tenant_admin']))
+        @if($isSA || $isToOrTa)
+          <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('admin.invitations.*') ? 'active' : '' }}"
+               href="{{ route('admin.invitations.index') }}">
+              Invitations
+            </a>
+          </li>
+        @endif
+        @if($isSA)
+          <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('admin.tenants.seats.*') ? 'active' : '' }}"
+               href="{{ route('admin.tenants.seats.index') }}">
+              Seats
+            </a>
+          </li>
+        @endif
       </ul>
 
       <ul class="navbar-nav ms-auto">

@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\ImpersonationController;
+use App\Http\Controllers\Admin\InvitationController;
+use App\Http\Controllers\Admin\TenantSeatsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\Admin\UserStatusController;
@@ -79,7 +82,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 /**
  * Protected Routes
  */
-Route::middleware(['auth:web', 'verified'])
+Route::middleware(['auth:web', 'verified', 'tenant.manager'])
   ->prefix('admin')
   ->name('admin.')
   ->group(function () {
@@ -92,6 +95,9 @@ Route::middleware(['auth:web', 'verified'])
     Route::post('users/{user}/status', [UserStatusController::class, 'update'])
       ->name('users.status.update')
       ->middleware('throttle:12,1');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])
+      ->name('users.destroy');
+
 
     // Impersonation routes
     Route::post('impersonate/{user}', [ImpersonationController::class, 'start'])
@@ -104,4 +110,24 @@ Route::middleware(['auth:web', 'verified'])
       ->name('users.roles.edit');
     Route::post('users/{user}/roles', [UserRoleController::class, 'update'])
       ->name('users.roles.update');
+
+    // Invitations lifecycle
+    Route::get('invitations', [InvitationController::class, 'index'])
+      ->name('invitations.index');
+    Route::post('invitations/{invitation}/resend', [InvitationController::class, 'resend'])
+      ->name('invitations.resend');
+    Route::post('invitations/{invitation}/cancel', [InvitationController::class, 'cancel'])
+      ->name('invitations.cancel');
+
+    // Seats (only Platform SA; controller validates and aborts if not)
+    Route::get('tenants/seats', [TenantSeatsController::class, 'index'])
+      ->name('tenants.seats.index');
+    Route::post('tenants/{tenant}/seats', [TenantSeatsController::class, 'update'])
+      ->name('tenants.seats.update');
+
   });
+
+Route::middleware(['auth:web'])->group(function () {
+  Route::get('/account', [AccountController::class, 'show'])->name('account.show');
+  Route::post('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
+});

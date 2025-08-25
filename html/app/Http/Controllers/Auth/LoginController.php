@@ -88,8 +88,13 @@ class LoginController extends Controller
       'meta'         => ['remember' => $remember],
     ]);
 
-    // Redirect to intended (e.g., /admin/users)
-    return redirect()->intended(route('admin.users.index'));
+    // Redirect by role
+    $u = auth()->user();
+    if ($u->isPlatformSuperAdmin() || $u->hasAnyRole(['tenant_owner','tenant_admin'])) {
+      return redirect()->intended(route('admin.users.index'));
+    }
+
+    return redirect()->route('account.show');
   }
 
   public function logout(): RedirectResponse

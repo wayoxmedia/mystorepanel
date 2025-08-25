@@ -72,4 +72,46 @@ class Tenant extends Model
   {
     return $this->hasMany(User::class);
   }
+
+  /**
+   * Get the user seat limit for the tenant.
+   *
+   * @return int
+   */
+  public function seatsLimit(): int
+  {
+    return (int) ($this->user_seat_limit ?? 2);
+  }
+
+  /**
+   * Get the number of user seats currently used by the tenant.
+   *
+   * @return int
+   */
+  public function seatsUsed(): int
+  {
+    // Users that count towards the seat limit
+    $usersCount = User::query()
+      ->where('tenant_id', $this->id)
+      ->whereIn('status', ['active', 'locked', 'suspended']) // count towards seat limit
+      ->count();
+
+    // Pending invitations that count towards the seat limit
+    $pendingInvites = Invitation::query()
+      ->where('tenant_id', $this->id)
+      ->where('status', 'pending')
+      ->count();
+
+    return $usersCount + $pendingInvites;
+  }
+
+  /**
+   * Check if the tenant has available user seats.
+   *
+   * @return bool
+   */
+  public function hasSeatAvailable(): bool
+  {
+    return $this->seatsUsed() < $this->seatsLimit();
+  }
 }
