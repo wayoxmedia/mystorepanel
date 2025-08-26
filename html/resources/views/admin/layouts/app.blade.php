@@ -57,7 +57,7 @@
         @endif
       </ul>
 
-      <ul class="navbar-nav ms-auto">
+      {{--<ul class="navbar-nav ms-auto">
         @auth
           <li class="nav-item d-flex align-items-center me-2 text-white-50 small">
             @php($u = auth()->user())
@@ -79,19 +79,48 @@
             </li>
           @endif
         @endauth
+      </ul>--}}
+      <ul class="navbar-nav ms-auto">
+        {{-- My Account SIEMPRE visible para autenticados --}}
+        <li class="nav-item">
+          <a class="nav-link {{ request()->routeIs('account.show') ? 'active' : '' }}"
+             href="{{ route('account.show') }}">
+            My Account
+          </a>
+        </li>
+
+        {{-- (Opcional) Badge de Platform SA junto al nombre --}}
+        @if(auth()->user()?->isPlatformSuperAdmin())
+          <li class="nav-item">
+      <span class="nav-link disabled">
+        {{ auth()->user()->name }} <span class="badge text-bg-secondary ms-1">Platform</span>
+      </span>
+          </li>
+        @else
+          <li class="nav-item">
+            <span class="nav-link disabled">{{ auth()->user()->name ?? 'New User' }}</span>
+          </li>
+        @endif
+
+        <li class="nav-item">
+          <form method="post" action="{{ route('logout') }}" class="d-inline">
+            @csrf
+            <button class="btn btn-link nav-link">Logout</button>
+          </form>
+        </li>
       </ul>
     </div>
   </div>
 </nav>
 
 @if (session()->has('impersonator_id'))
-  <div class="bg-warning py-2">
+  <div class="bg-warning py-2 mb-3">
     <div class="container d-flex align-items-center justify-content-between">
       <div class="small">
         <strong>Impersonating:</strong> {{ auth()->user()->email }}
         <span class="text-muted ms-2">as requested by {{ session('impersonator_email') }}</span>
       </div>
-      <form method="post" action="{{ route('admin.impersonate.stop') }}">
+      <form method="post" action="{{ route('impersonate.stop') }}">
         @csrf
         <button class="btn btn-sm btn-dark">Stop impersonating</button>
       </form>
@@ -110,18 +139,7 @@
 <!-- Bootstrap JS Bundle (includes Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-  // Setup CSRF header for any jQuery AJAX calls
-  (function () {
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (window.jQuery && token) {
-      $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': token } });
-    }
-  })();
-  setTimeout(() => {
-    document.querySelectorAll('.alert').forEach(el => el.remove());
-  }, 5000);
-</script>
+<script src="{{ asset('admin/js/main.js') }}"></script>
 
 <!-- Place for page-specific scripts -->
 @stack('scripts')

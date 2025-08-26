@@ -14,6 +14,7 @@ class UserRoleController extends Controller
 {
   public function edit(User $user): View
   {
+    /** @var User $actor */
     $actor = auth()->user();
 
     // Autorización gruesa: mismo criterio que para gestionar usuarios
@@ -22,7 +23,7 @@ class UserRoleController extends Controller
     }
 
     // Roles disponibles
-    $allRoles = Role::orderBy('scope')->orderBy('name')->get();
+    $allRoles = Role::query()->orderBy('scope')->orderBy('name')->get();
 
     // Filtra lo que el actor puede tocar
     $allowed = $allRoles->filter(function ($role) use ($actor, $user) {
@@ -46,6 +47,7 @@ class UserRoleController extends Controller
 
   public function update(UpdateUserRolesRequest $request, User $user): RedirectResponse
   {
+    /** @var User $actor */
     $actor = auth()->user();
 
     if (! $this->canManageTarget($actor, $user)) {
@@ -60,7 +62,7 @@ class UserRoleController extends Controller
     $submitted = collect($request->input('role_slugs', []))->unique()->values();
 
     // Filtra según permisos del actor
-    $allowed = Role::whereIn('slug', $submitted)->get()->filter(function ($role) use ($actor, $user) {
+    $allowed = Role::query()->whereIn('slug', $submitted)->get()->filter(function ($role) use ($actor, $user) {
       if ($actor->isPlatformSuperAdmin()) return true;
       if ($role->scope === 'platform') return false;
       if ($user->isPlatformSuperAdmin()) return false;
@@ -78,7 +80,7 @@ class UserRoleController extends Controller
     $added   = array_values(array_diff($after, $before));
     $removed = array_values(array_diff($before, $after));
 
-    AuditLog::create([
+    AuditLog::query()->create([
       'actor_id'     => $actor->id,
       'action'       => 'user.roles.synced',
       'subject_type' => User::class,
@@ -92,6 +94,12 @@ class UserRoleController extends Controller
   }
 
   /** --- helpers --- */
+
+  /**
+   * @param  User  $actor
+   * @param  User  $target
+   * @return bool
+   */
   private function canManageTarget(User $actor, User $target): bool
   {
     if ($actor->isPlatformSuperAdmin()) return true;

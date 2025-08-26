@@ -39,7 +39,7 @@ class ImpersonationController extends Controller
     ]);
 
     // Audit (register who started impersonation and who is being impersonated)
-    AuditLog::create([
+    AuditLog::query()->create([
       'actor_id'     => session('impersonator_id'),
       'action'       => 'impersonation.start',
       'subject_type' => User::class,
@@ -72,7 +72,7 @@ class ImpersonationController extends Controller
     $impersonatedEmail = Auth::user()?->email;
 
     // Audit
-    AuditLog::create([
+    AuditLog::query()->create([
       'actor_id'     => $impersonatorId,   // real actor
       'action'       => 'impersonation.end',
       'subject_type' => User::class,

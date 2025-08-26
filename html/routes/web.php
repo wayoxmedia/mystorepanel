@@ -60,7 +60,7 @@ Route::post('/invitation/accept', [InvitationAcceptanceController::class, 'store
 
 
 // Email verification notice — require session but NO verified email
-Route::get('/email/verify', fn () => view('auth.verify-email'))
+Route::get('/email/verify', fn () => view('auth.invitations.verify-email'))
   ->middleware('auth')
   ->name('verification.notice');
 
@@ -102,8 +102,6 @@ Route::middleware(['auth:web', 'verified', 'tenant.manager'])
     // Impersonation routes
     Route::post('impersonate/{user}', [ImpersonationController::class, 'start'])
       ->name('impersonate.start');
-    Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])
-      ->name('impersonate.stop');
 
     // User role management
     Route::get('users/{user}/roles', [UserRoleController::class, 'edit'])
@@ -131,3 +129,8 @@ Route::middleware(['auth:web'])->group(function () {
   Route::get('/account', [AccountController::class, 'show'])->name('account.show');
   Route::post('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
 });
+
+// Impersonation stop (global, outside /admin, for convenience)
+Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])
+  ->name('impersonate.stop')
+  ->middleware('auth');

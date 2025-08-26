@@ -18,6 +18,7 @@ use Illuminate\View\View;
 
 /**
  * Controller for managing user invitations within a multi-tenant application.
+ *
  * Handles listing, resending, cancelling, and creating invitations.
  */
 class InvitationController extends Controller
@@ -59,8 +60,19 @@ class InvitationController extends Controller
     }
 
     $invitations = $query->paginate(15)->withQueryString();
+    $tenant = $actor->tenant;
+    $seats  = $tenant ? [
+      'limit'     => $tenant->seatsLimit(),
+      'used'      => $tenant->seatsUsed(),
+      'available' => max(0, $tenant->seatsLimit() - $tenant->seatsUsed()),
+    ] : null;
 
-    return view('admin.invitations.index', compact('invitations', 'status'));
+    return view('admin.invitations.index', [
+      'invitations' => $invitations,
+      'status' => $status,
+      'tenant' => $tenant,
+      'seats' => $seats,
+      ]);
   }
 
   /**

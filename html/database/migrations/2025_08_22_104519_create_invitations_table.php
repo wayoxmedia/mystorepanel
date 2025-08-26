@@ -8,7 +8,7 @@ return new class extends Migration
 {
   /**
    * Invitations table for user onboarding via token (no passwords via email).
-   * status: pending | accepted | expired | revoked
+   * status: pending | accepted | expired | cancelled
    */
   public function up(): void
   {
@@ -29,7 +29,7 @@ return new class extends Migration
       $table->timestamp('expires_at')
         ->nullable()
         ->index();
-      $table->enum('status', ['pending', 'accepted', 'expired', 'revoked'])
+      $table->enum('status', ['pending', 'accepted', 'expired', 'cancelled'])
         ->default('pending')
         ->index();
 

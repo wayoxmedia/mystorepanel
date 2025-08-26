@@ -1,10 +1,14 @@
 @extends('admin.layouts.app')
 
+@php
+  $isSA = $actor->isPlatformSuperAdmin();
+@endphp
+
 @section('content')
   <div class="container">
     <h1 class="h4 mb-3">Create / Invite User</h1>
 
-    @if ($errors->any())
+@if ($errors->any())
       <div class="alert alert-danger">
         <ul class="mb-0">
           @foreach ($errors->all() as $error)
@@ -12,11 +16,9 @@
           @endforeach
         </ul>
       </div>
-    @endif
-
+@endif
     <form method="post" action="{{ route('admin.users.store') }}">
-      @csrf
-
+@csrf
       <div class="mb-3">
         <label class="form-label">Mode</label>
         <div class="form-check">
@@ -51,26 +53,32 @@
           <label for="email" class="form-label dynamic">Email</label>
         </div>
 
-        @if($tenants->count() >= 1)
+@if($tenants->count() >= 1 && $isSA)
           <div class="col-md-6">
             <label class="form-label">Tenant</label>
             <select name="tenant_id" class="form-select">
-              @if(auth()->user()->isPlatformSuperAdmin())
-                <option value="">(Platform staff)</option>
-              @endif
-              @foreach($tenants as $t)
-                <option value="{{ $t->id }}" @selected(old('tenant_id')==$t->id)>{{ $t->name }}</option>
-              @endforeach
+@if(auth()->user()->isPlatformSuperAdmin())
+              <option value="">(Platform staff)</option>
+@endif
+@foreach($tenants as $t)
+              <option value="{{ $t->id }}" @selected(old('tenant_id')==$t->id)>
+                {{ $t->name }}
+              </option>
+@endforeach
             </select>
           </div>
-        @endif
+@endif
 
         <div class="col-md-6">
           <label class="form-label">Role</label>
           <select name="role_slug" class="form-select" required>
-            @foreach($roles as $r)
-              <option value="{{ $r->slug }}" @selected(old('role_slug')==$r->slug)>{{ $r->name }}</option>
-            @endforeach
+@forelse($roles as $r)
+            <option value="{{ $r->slug }}" @selected(old('role_slug')==$r->slug)>
+              {{$r->name}}
+            </option>
+@empty
+            <option value="" disabled>(no roles available)</option>
+@endforelse
           </select>
         </div>
 

@@ -12,6 +12,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -69,11 +70,18 @@ class UserController extends Controller
       });
     }
 
-    $users = $query->orderByDesc('id')->paginate(15)->withQueryString();
+    $users = $query->orderByDesc('id')
+      ->paginate(15)
+      ->withQueryString();
     $tenants = auth()->user()->isPlatformSuperAdmin()
-      ? Tenant::query()->orderBy('name')->get(['id','name'])
-      : Tenant::query()->where('id', auth()->user()->tenant_id)->get(['id','name']);
-    $roles = Role::query()->orderBy('name')->get(['slug','name']);
+      ? Tenant::query()->orderBy('name')
+        ->get(['id','name'])
+      : Tenant::query()
+        ->where('id', auth()->user()->tenant_id)
+        ->get(['id','name']);
+    $roles = Role::query()
+      ->orderBy('id')
+      ->get(['id', 'slug','name']);
 
     $actor = auth()->user();
     $tenant = $actor->tenant; // null para Platform SA
@@ -101,21 +109,24 @@ class UserController extends Controller
    *
    * @return Factory|View|Application
    */
-  public function create(): Factory|Application|View
+  public function create(Request $request): Factory|Application|View
   {
     $this->authorizeCreate();
 
-    $tenants = auth()->user()->isPlatformSuperAdmin()
+    $actor = $request->user();
+
+    // If SA, can choose tenant; otherwise, no tenant select in form,
+    // si no, usará su tenant por defecto en el store()
+    $tenants = $actor->isPlatformSuperAdmin()
       ? Tenant::query()
         ->orderBy('name')
         ->get(['id','name'])
-      : Tenant::query()
-        ->where('id', auth()->user()
-          ->tenant_id)->get(['id','name']);
+      : collect();
 
-    $roles = Role::query()->orderBy('name')->get(['slug','name']);
+    // Roles the actor can assign (UI)
+    $roles = $this->assignableRolesFor($actor);
 
-    return view('admin.users.create', compact('tenants', 'roles'));
+    return view('admin.users.create', compact('tenants', ['roles', 'actor']));
   }
 
   /**
@@ -248,7 +259,9 @@ class UserController extends Controller
         // TODO: enviar email con link de aceptación
       }
 
-      return redirect()->route('admin.users.index')->with('success', 'Invitation created successfully.');
+      return redirect()->route('admin.users.index')
+        ->with('success', 'Invitation created successfully.')
+        ->with('nd', 'non-dismissible'); // for persistent flash message
     }
 
     if ($mode === 'create') {
@@ -348,7 +361,7 @@ class UserController extends Controller
           (int)$actor->tenant_id === (int)$user->tenant_id)
       ) ||
       $user->isPlatformSuperAdmin()) {
-      abort(403);
+      return back()->with('error', 'Platform Super Admins can not be deleted.');
     }
 
     // No te borres a ti mismo
@@ -482,5 +495,29 @@ class UserController extends Controller
     return User::query()
       ->where('email', $email)
       ->exists();
+  }
+
+  /**
+   * Get roles that the actor can assign to new users.
+   *
+   * Platform super admins can assign any role, while tenant managers
+   * can only assign tenant-scoped roles.
+   *
+   * @param  User  $actor
+   * @return Collection
+   */
+  private function assignableRolesFor(User $actor)
+  {
+    if ($actor->isPlatformSuperAdmin()) {
+      return Role::query()
+        ->orderBy('id')
+        ->get(['id','name','slug','scope']);
+    }
+
+    return Role::query()
+      ->where('scope', 'tenant')
+      ->where('slug', '!=', 'platform_super_admin') // redundant, for security
+      ->orderBy('id')
+      ->get(['id','name','slug','scope']);
   }
 }

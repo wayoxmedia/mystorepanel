@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Class Invitation
+ * @property mixed $id
  * @property mixed $email
  * @property mixed $tenant_id
  * @property mixed $role_id

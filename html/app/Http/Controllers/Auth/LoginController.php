@@ -63,9 +63,9 @@ class LoginController extends Controller
     }
 
     // Enforce email verification if your users table has it
-    if (\Schema::hasColumn('users', 'email_verified_at') && is_null($user->email_verified_at)) {
+    /*if (is_null($user->email_verified_at)) {
       return back()->withErrors(['email' => 'Please verify your email before logging in.']);
-    }
+    }*/
 
     // Verify password first to avoid hitting throttling unnecessarily
     if (! Hash::check($credentials['password'], $user->password)) {
