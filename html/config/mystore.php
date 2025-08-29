@@ -2,7 +2,8 @@
 
 return [
   'invitations' => [
-    'expires_hours' => 72, // invitation token validity
+    'expires_hours' => 168, // invitation token validity, 7 days
+    'cooldown_minutes' => 5,
   ],
 
   'system_actor_id' => 0,

@@ -3,6 +3,7 @@
 @section('title','My Account')
 
 @section('content')
+  @include('account.partials.verify-banner')
   <div class="row justify-content-center">
     <div class="col-md-7 col-lg-6">
       <div class="card mb-3">

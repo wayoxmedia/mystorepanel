@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\InvitationController;
+use App\Http\Controllers\Admin\SeatUpgradeController;
 use App\Http\Controllers\Admin\TenantSeatsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserRoleController;
@@ -113,8 +114,10 @@ Route::middleware(['auth:web', 'verified', 'tenant.manager'])
     Route::get('invitations', [InvitationController::class, 'index'])
       ->name('invitations.index');
     Route::post('invitations/{invitation}/resend', [InvitationController::class, 'resend'])
+      ->middleware('throttle:3,1') // <= max 3 tries per minute
       ->name('invitations.resend');
     Route::post('invitations/{invitation}/cancel', [InvitationController::class, 'cancel'])
+      ->middleware('throttle:12,1')
       ->name('invitations.cancel');
 
     // Seats (only Platform SA; controller validates and aborts if not)
@@ -122,6 +125,10 @@ Route::middleware(['auth:web', 'verified', 'tenant.manager'])
       ->name('tenants.seats.index');
     Route::post('tenants/{tenant}/seats', [TenantSeatsController::class, 'update'])
       ->name('tenants.seats.update');
+    Route::get('seats/upgrade', [SeatUpgradeController::class, 'show'])
+      ->name('seats.upgrade.show');
+    Route::post('seats/upgrade', [SeatUpgradeController::class, 'request'])
+      ->name('seats.upgrade.request');
 
   });
 

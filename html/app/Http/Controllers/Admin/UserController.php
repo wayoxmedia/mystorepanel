@@ -45,8 +45,10 @@ class UserController extends Controller
     $query = User::query()->with(['tenant', 'roles']);
 
     // Scope by tenant if not platform super admin
-    if (! auth()->user()->isPlatformSuperAdmin()) {
-      $query->where('tenant_id', auth()->user()->tenant_id);
+    /** @var User $user */
+    $user = auth()->user();
+    if (! $user->isPlatformSuperAdmin()) {
+      $query->where('tenant_id', $user->tenant_id);
     } else {
       // Optional filters
       if ($request->filled('tenant_id')) {
@@ -107,6 +109,7 @@ class UserController extends Controller
   /**
    * Show the form for creating a new user.
    *
+   * @param  Request  $request
    * @return Factory|View|Application
    */
   public function create(Request $request): Factory|Application|View
@@ -194,13 +197,15 @@ class UserController extends Controller
             $token = Str::random(64);
 
             $inv = Invitation::query()->create([
-              'email'      => $email,
-              'tenant_id'  => $tenantId,
-              'role_id'    => $role->id,
-              'token'      => $token,
-              'expires_at' => now()->addHours(config('mystore.invitations.expires_hours', 168)), // 7d por defecto
-              'status'     => 'pending',
-              'invited_by' => $actor->id,
+              'email'       => $email,
+              'tenant_id'   => $tenantId,
+              'role_id'     => $role->id,
+              'token'       => $token,
+              'expires_at'  => now()->addHours(config('mystore.invitations.expires_hours', 168)), // 7d por defecto
+              'status'      => 'pending',
+              'invited_by'  => $actor->id,
+              'last_sent_at'=> now(),
+              'send_count'  => 1,
             ]);
 
             // Enviar correo de invitación
@@ -212,9 +217,10 @@ class UserController extends Controller
               'subject_type' => Invitation::class,
               'subject_id'   => $inv->id,
               'meta'         => [
-                'email'     => $email,
-                'tenant_id' => $tenantId,
-                'role_slug' => $role->slug,
+                'email'      => $email,
+                'tenant_id'  => $tenantId,
+                'role_slug'  => $role->slug,
+                'send_count' => $inv->send_count,
               ],
             ]);
 
@@ -232,13 +238,15 @@ class UserController extends Controller
 
         $token = Str::random(64);
         $inv = Invitation::query()->create([
-          'email'      => $email,
-          'tenant_id'  => null,
-          'role_id'    => $role->id,
-          'token'      => $token,
-          'expires_at' => now()->addHours(config('mystore.invitations.expires_hours', 168)),
-          'status'     => 'pending',
-          'invited_by' => $actor->id,
+          'email'       => $email,
+          'tenant_id'   => null,
+          'role_id'     => $role->id,
+          'token'       => $token,
+          'expires_at'  => now()->addHours(config('mystore.invitations.expires_hours', 168)),
+          'status'      => 'pending',
+          'invited_by'  => $actor->id,
+          'last_sent_at'=> now(),
+          'send_count'  => 1,
         ]);
 
         // Send invitation email
@@ -250,9 +258,10 @@ class UserController extends Controller
           'subject_type' => Invitation::class,
           'subject_id'   => $inv->id,
           'meta'         => [
-            'email'     => $inv->email,
-            'tenant_id' => null,
-            'role_slug' => $role->slug,
+            'email'      => $inv->email,
+            'tenant_id'  => null,
+            'role_slug'  => $role->slug,
+            'send_count' => $inv->send_count,
           ],
         ]);
 
@@ -355,24 +364,65 @@ class UserController extends Controller
   {
     $actor = auth()->user();
 
-    // Permission: Platform SA or Tenant Owner/Admin of same tenant, never delete Platform SA
-    if (! ($actor->isPlatformSuperAdmin() || (
-          $actor->hasAnyRole(['tenant_owner','tenant_admin']) &&
-          (int)$actor->tenant_id === (int)$user->tenant_id)
-      ) ||
-      $user->isPlatformSuperAdmin()) {
+    // 1. Permission: Never delete Platform SA
+    if ($user->isPlatformSuperAdmin()) {
       return back()->with('error', 'Platform Super Admins can not be deleted.');
     }
 
-    // No te borres a ti mismo
+    // 2. Don't allow self-deletion
     if ($actor->id === $user->id) {
       return back()->with('error', 'You cannot delete yourself.');
+    }
+
+    // 3. Platform SA or Tenant Owner/Admin of same tenant
+    $allowed = false;
+    if ($actor->isPlatformSuperAdmin()) {
+      $allowed = true;
+    } elseif ($actor->hasAnyRole(['tenant_owner','tenant_admin'])) {
+      $allowed = ((int) $actor->tenant_id === (int) $user->tenant_id);
+    }
+
+    if (! $allowed) {
+      return back()->with('error', 'You are not allowed to delete this user.');
+    }
+
+    // 4. Never leave a tenant without an owner
+    try {
+      $tenantId = $user->tenant_id;
+      if (! is_null($tenantId)) {
+        // Is the user a tenant owner?
+        $ownerRoleId = Role::query()
+          ->where('slug', 'tenant_owner')
+          ->value('id');
+        if ($ownerRoleId) {
+          $isTargetOwner = DB::table('role_user')
+            ->where('user_id', $user->id)
+            ->where('role_id', $ownerRoleId)
+            ->exists();
+
+          if ($isTargetOwner) {
+            // Are there other owners in the same tenant? Including the target?
+            $otherOwners = DB::table('role_user as ru')
+              ->join('users as u', 'u.id', '=', 'ru.user_id')
+              ->where('ru.role_id', $ownerRoleId)
+              ->where('u.tenant_id', $tenantId)
+              ->where('u.id', '!=', $user->id)
+              ->count();
+
+            if ($otherOwners === 0) {
+              return back()->with('error', 'You cannot delete the last Tenant Owner for this tenant.');
+            }
+          }
+        }
+      }
+    } catch (Throwable $e) {
+      // If something fails when checking the invariant, better prevent deletion
+      return back()->with('error', 'Unable to verify tenant owner invariant. User not deleted.');
     }
 
     // Hard delete
     $uid = $user->id;
     $email = $user->email;
-    $tenantId = $user->tenant_id;
 
     $user->forceDelete();
 
@@ -506,7 +556,7 @@ class UserController extends Controller
    * @param  User  $actor
    * @return Collection
    */
-  private function assignableRolesFor(User $actor)
+  private function assignableRolesFor(User $actor): Collection
   {
     if ($actor->isPlatformSuperAdmin()) {
       return Role::query()

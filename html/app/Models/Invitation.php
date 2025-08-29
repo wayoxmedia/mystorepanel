@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed $expires_at
  * @property mixed $status
  * @property mixed $invited_by
+ * @property mixed $last_sent_at
+ * @property mixed $send_count
  */
 class Invitation extends Model
 {
@@ -30,13 +32,17 @@ class Invitation extends Model
     'expires_at',
     'status',
     'invited_by',
+    'last_sent_at',
+    'send_count',
   ];
 
   /** @var string[] */
   protected $casts = [
-    'expires_at' => 'datetime',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
+    'expires_at'   => 'datetime',
+    'last_sent_at' => 'datetime',
+    'send_count'   => 'integer',
+    'created_at'   => 'datetime',
+    'updated_at'   => 'datetime',
   ];
 
   /**

@@ -3,7 +3,8 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -27,8 +28,10 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property Role[] $roles
  * @property string $status
  */
-class User extends Authenticatable implements JWTSubject, MustVerifyEmail
+class User extends Authenticatable implements JWTSubject, MustVerifyEmailContract
 {
+  use MustVerifyEmail;
+
   /** @use HasFactory<UserFactory> */
   use HasFactory, Notifiable;
 
