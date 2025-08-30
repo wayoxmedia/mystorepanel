@@ -1,4 +1,4 @@
-@extends('admin.layout.app')
+@extends('admin.layouts.app')
 @section('title','Page expired')
 
 @section('content')
