@@ -5,6 +5,10 @@
 @php
   $isSA = auth()->user()?->isPlatformSuperAdmin();
   $limitReached = !empty($tenant) && !empty($seats) && ($seats['available'] <= 0);
+  // Attempt to deduce tenant_id if not explicitly provided
+  $tenantId = $tenantId
+      ?? (isset($tenant) && $tenant->id ? $tenant->id : null)
+      ?? (auth()->user()?->tenant_id ?? null);
 @endphp
 
   <div class="d-flex align-items-center justify-content-between mb-3">
@@ -12,8 +16,10 @@
 @include('admin.partials.seats-cta', [
   'limitReached' => $limitReached,
   'primaryRoute' => route('admin.users.create'),
-  'primaryLabel' => 'Invite / Create User',   // optional
-  'buyMore'      => 'Buy More Users',         // optional
+  'primaryLabel' => 'Invite / Create User',
+  'buyMore'      => 'Buy More Users',
+  'tenantId'     => $tenantId,
+  '$isSA'        => $isSA,
 ])
   </div>
 
@@ -73,6 +79,9 @@
   };
 @endphp
               <span class="badge text-bg-{{ $badge }}">{{ $status }}</span>
+@if(method_exists($u, 'hasVerifiedEmail') && ! $u->hasVerifiedEmail())
+              <span class="badge text-bg-secondary ms-1" title="Email not verified">Unverified</span>
+@endif
             </td>
 
             <td class="text-end">

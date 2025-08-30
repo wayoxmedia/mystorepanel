@@ -1,6 +1,10 @@
-@if(!empty($limitReached) && $limitReached)
-  {{-- CTA inoperant when there are NO seats available (for now) --}}
-  <a href="#"
+@if(!empty($limitReached))
+@php
+  $upgradeUrl = ($isSA && $tenantId)
+    ? route('admin.seats.upgrade.show', ['tenant_id' => $tenantId])
+    : route('admin.seats.upgrade.show');
+@endphp
+  <a href="{{ $upgradeUrl }}"
      class="btn btn-primary disabled"
      aria-disabled="true"
      title="No seats available">

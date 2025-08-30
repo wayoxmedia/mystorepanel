@@ -191,5 +191,14 @@ sh tests.sh tests --ci # in dev/testing, do not use
 * Use Visual Studio Code with the Remote - Containers extension to open your project in a container.
 * Use the Docker extension to manage your containers, images, volumes, networks and containers.
 
+
+### Dont forget
+* Run these commands after pulling new code, changing your .env file or when something is not working as expected.
+```sh
+php artisan optimize:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+```
 Happy coding!
 

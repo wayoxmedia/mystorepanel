@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Mail\InvitationMail;
 use App\Models\AuditLog;
 use App\Models\Invitation;
-use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -41,7 +41,7 @@ class InvitationController extends Controller
     if (! $actor->isPlatformSuperAdmin()) {
       $query->where('tenant_id', $actor->tenant_id);
     } elseif ($request->filled('tenant_id')) {
-      $query->where('tenant_id', (int) $request->integer('tenant_id'));
+      $query->where('tenant_id', $request->integer('tenant_id'));
     }
 
     $status = $request->string('status')->lower()->value();
@@ -92,31 +92,54 @@ class InvitationController extends Controller
       return back()->with('error', 'This invitation was already accepted.');
     }
 
+    // Cooldown (minutes) — configurable; default 5 mins
+    $cooldownMinutes = (int) config('mystore.invitations.cooldown_minutes', 5);
+
+    if ($cooldownMinutes > 0 && $invitation->last_sent_at) {
+      $lastSent = Carbon::parse($invitation->last_sent_at);
+      $nextAllowed = $lastSent->copy()->addMinutes($cooldownMinutes);
+
+      if (now()->lt($nextAllowed)) {
+        $secondsLeft = now()->diffInSeconds($nextAllowed);
+        $minutesLeft = (int) ceil($secondsLeft / 60);
+        return back()->with(
+          'error',
+          "Please wait {$minutesLeft} minute(s) before resending this invitation."
+        );
+      }
+    }
+
     $shouldReopen = $invitation->status !== 'pending'
-      || ($invitation->expires_at && $invitation->expires_at->isPast());
+      || ($invitation->expires_at && Carbon::parse($invitation->expires_at)->isPast());
 
     if ($shouldReopen) {
       $invitation->token      = Str::random(64);
       $invitation->status     = 'pending';
-      $invitation->expires_at = now()->addHours(config('mystore.invitations.expires_hours', 168)); // 7 días
-    } else {
-      // Keep pending status and just extend expiration
-      $invitation->expires_at = now()->addHours(config('mystore.invitations.expires_hours', 168));
     }
+    // Keep pending status and just extend expiration
+    $invitation->expires_at = now()->addHours(config('mystore.invitations.expires_hours', 168)); // 7 días
     $invitation->save();
 
     Mail::to($invitation->email)
       ->send(new InvitationMail($invitation));
 
+    // Update sending metrics
+    $invitation->last_sent_at = now();
+    $invitation->send_count   = (int) $invitation->send_count + 1;
+    $invitation->save();
+
     // (Opcional) URL de aceptación, para el mailable
     // $acceptUrl = route('invitations.accept', ['token' => $invitation->token]);
 
-    AuditLog::create([
+    AuditLog::query()->create([
       'actor_id'     => $actor->id,
       'action'       => 'invite.resent',
       'subject_type' => Invitation::class,
       'subject_id'   => $invitation->id,
-      'meta'         => ['email' => $invitation->email],
+      'meta'         => [
+        'email' => $invitation->email,
+        'send_count' => $invitation->send_count
+      ],
     ]);
 
     // TODO: enviar email aquí con un Mailable/Notification (siguiente archivo).
@@ -141,7 +164,7 @@ class InvitationController extends Controller
     $invitation->expires_at = now();
     $invitation->save();
 
-    AuditLog::create([
+    AuditLog::query()->create([
       'actor_id'     => $actor->id,
       'action'       => 'invite.cancelled',
       'subject_type' => Invitation::class,
