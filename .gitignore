@@ -26,3 +26,43 @@ docs
 ########################
 ### OS
 .DS_Store
+
+########################
+### Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+########################
+### PHPUnit
+.phpunit.result.cache
+.phpunit.cache
+.phpunit.coverage.cache
+
+########################
+### Laravel
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+/tests/reports
+.env.backup
+.env.production
+.env.testing
+.phpactor.json
+test_database.sqlite
+Homestead.json
+Homestead.yaml
+/auth.json
+/.fleet
+/.nova
+/.vscode
+/.zed
+## Some more
+html/storage/tests
+html/vendor

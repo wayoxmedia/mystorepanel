@@ -13,7 +13,8 @@
     "laravel/framework": "^12.0",
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.10.1",
-    "tymon/jwt-auth": "^2.2"
+    "tymon/jwt-auth": "^2.2",
+    "ext-pdo": "*"
   },
   "require-dev": {
     "fakerphp/faker": "^1.23",
@@ -62,6 +63,8 @@
     ],
     "test": [
       "@php artisan config:clear --ansi",
+      "@php -r \"if (getenv('APP_ENV') !== 'testing') { fwrite(STDERR, 'Refusing to run tests unless APP_ENV=testing'.PHP_EOL); exit(1);} \"",
+      "php artisan test --parallel",
       "@php artisan test"
     ]
   },

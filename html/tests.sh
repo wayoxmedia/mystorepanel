@@ -4,7 +4,7 @@
 # Please run this script *inside your Docker container*
 
 start_time=$(date +%s)
-junit_file="tests/reports/results.xml"
+junit_file="storage/tests/reports/results.xml"
 ci_mode=false
 
 # 📛 Show help + error usage
@@ -145,6 +145,8 @@ if [ "$slack_notify" = true ]; then
   printf "Sending to Slack\n"
   slack_webhook_url="${SLACK_PHPUNIT_NOTIFY_WEBHOOK_URL:-unknown}"
   slack_username="${TEST_RUN_USER:-unknown}"
+  printf $slack_webhook_url" \n"
+  printf $slack_username" \n"
 
   # Calculate duration
   end_time=$(date +%s)

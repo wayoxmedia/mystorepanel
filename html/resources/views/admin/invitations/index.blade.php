@@ -3,6 +3,7 @@
 
 @php
 use Illuminate\Support\Carbon;
+// xdebug_break();
 $tenant = $tenant ?? null;
 $seats = $seats ?? (
   $tenant ? [
@@ -24,7 +25,7 @@ $cooldown = (int) config('mystore.invitations.cooldown_minutes', 5);
   'primaryRoute' => route('admin.users.create'),
   'primaryLabel' => 'Invite / Create User',
   'buyMore'      => 'Buy More Users',
-  'tenantId'     => $tenant->id,
+  'tenantId'     => $tenant->id ?? null,
   'isSA'         => $isSA,
 ])
   </div>
