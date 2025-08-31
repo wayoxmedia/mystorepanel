@@ -25,7 +25,7 @@
 
     <!-- Force testing env + safe, side-effect-free drivers -->
     <env name="APP_ENV" value="testing"/>
-    <env name="APP_URL" value="http://localhost"/>
+    <env name="APP_URL" value="http://mystorepanel.test"/>
 
     <env name="CACHE_DRIVER" value="array"/>
     <env name="CACHE_STORE" value="array"/>
@@ -48,7 +48,8 @@
     <env name="APP_MAINTENANCE_DRIVER" value="file"/>
 
     <!-- Enable coverage if Xdebug/P-COV is present -->
-    <env name="XDEBUG_MODE" value="coverage"/>
+    <env name="XDEBUG_MODE" value="debug,develop,coverage"/>
+    <env name="XDEBUG_CONFIG" value="client_host=host.docker.internal;client_port=59896;idekey=PHPSTORM"/>
 
     <!--  Crear un server en el PHPSTORM  -->
     <env name="PHP_IDE_CONFIG" value="serverName=mystorepanel"/>

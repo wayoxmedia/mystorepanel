@@ -36,7 +36,7 @@ class InvitationController extends Controller
   public function index(Request $request): View
   {
     $actor = $request->user();
-    Log::debug('InvitationController@index accessed by user ID: ' . $actor->id);
+    Log::debug('InvitationController@index accessed by user IDXXX: ' . $actor->id);
 
     $query = Invitation::query()->orderByDesc('created_at');
 

@@ -145,6 +145,8 @@ if [ "$slack_notify" = true ]; then
   printf "Sending to Slack\n"
   slack_webhook_url="${SLACK_PHPUNIT_NOTIFY_WEBHOOK_URL:-unknown}"
   slack_username="${TEST_RUN_USER:-unknown}"
+  printf $slack_webhook_url" \n"
+  printf $slack_username" \n"
 
   # Calculate duration
   end_time=$(date +%s)
