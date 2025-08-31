@@ -161,12 +161,14 @@ trait TestHelpers
 
     // Spatie-style roles
     if (Schema::hasTable('roles')) {
-      // Ensure an 'admin' role exists
-      $roleId = DB::table('roles')->where('slug', 'admin')->value('id');
+      // Ensure a 'tenant_admin' role exists
+      $roleId = DB::table('roles')
+        ->where('slug', 'tenant_admin')
+        ->value('id');
       if (!$roleId) {
         $roleId = DB::table('roles')->insertGetId([
           'name'       => 'Admin',
-          'slug'       => 'admin',
+          'slug'       => 'tenant_admin',
           'scope'      => Schema::hasColumn('roles', 'scope') ? 'tenant' : null,
           'created_at' => now(),
           'updated_at' => now(),
@@ -177,15 +179,6 @@ trait TestHelpers
       if (Schema::hasTable('role_user')) {
         DB::table('role_user')->updateOrInsert(
           ['role_id' => $roleId, 'user_id' => $user['id']],
-          []
-        );
-      } elseif (Schema::hasTable('model_has_roles')) {
-        DB::table('model_has_roles')->updateOrInsert(
-          [
-            'role_id'    => $roleId,
-            'model_type' => 'App\\Models\\User',
-            'model_id'   => $user['id'],
-          ],
           []
         );
       }

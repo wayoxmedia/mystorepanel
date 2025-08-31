@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -35,8 +36,11 @@ class InvitationController extends Controller
   public function index(Request $request): View
   {
     $actor = $request->user();
+    Log::debug('InvitationController@index accessed by user ID: ' . $actor->id);
 
     $query = Invitation::query()->orderByDesc('created_at');
+
+    Log::debug('Actor roles: ' . implode(',', $actor->roles->pluck('name')->toArray()));
 
     if (! $actor->isPlatformSuperAdmin()) {
       $query->where('tenant_id', $actor->tenant_id);

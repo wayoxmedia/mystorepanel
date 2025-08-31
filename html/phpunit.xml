@@ -3,34 +3,54 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
-         cacheDirectory=".phpunit.cache">
+         cacheDirectory="storage/logs/.phpunit.cache"
+         executionOrder="random"
+         failOnWarning="true"
+         failOnRisky="true">
   <testsuites>
     <testsuite name="AllTests">
       <directory>tests</directory>
       <exclude>tests/Feature/ExampleTest.php</exclude>
     </testsuite>
   </testsuites>
+
   <coverage>
     <report>
       <html outputDirectory="tests/reports/coverage"/>
     </report>
   </coverage>
+
   <php>
     <ini name="memory_limit" value="256M"/>
+
+    <!-- Force testing env + safe, side-effect-free drivers -->
     <env name="APP_ENV" value="testing"/>
+    <env name="APP_URL" value="http://localhost"/>
+
     <env name="CACHE_DRIVER" value="array"/>
     <env name="CACHE_STORE" value="array"/>
     <env name="SESSION_DRIVER" value="array"/>
-    <env name="QUEUE_DRIVER" value="sync"/>
     <env name="QUEUE_CONNECTION" value="sync"/>
-    <env name="DB_CONNECTION" value="sqlite"/>
-    <env name="DB_DATABASE" value="test_database.sqlite"/>
+
+    <!-- DB connection name used by .env.testing -->
+    <env name="DB_CONNECTION" value="mysql_testing"/>
+
+    <!-- No real emails while testing -->
     <env name="MAIL_MAILER" value="array"/>
+
+    <!-- Disable heavy tooling during tests -->
     <env name="PULSE_ENABLED" value="false"/>
     <env name="TELESCOPE_ENABLED" value="false"/>
+
+    <!-- Speed up hashing in tests -->
     <env name="BCRYPT_ROUNDS" value="4"/>
+
     <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+
+    <!-- Enable coverage if Xdebug/P-COV is present -->
+    <env name="XDEBUG_MODE" value="coverage"/>
   </php>
+
   <source>
     <include>
       <directory suffix=".php">app</directory>
