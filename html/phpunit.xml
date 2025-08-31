@@ -3,7 +3,7 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
-         cacheDirectory="storage/logs/.phpunit.cache"
+         cacheDirectory="storage/tests/cache"
          executionOrder="random"
          failOnWarning="true"
          failOnRisky="true">
@@ -16,7 +16,7 @@
 
   <coverage>
     <report>
-      <html outputDirectory="tests/reports/coverage"/>
+      <html outputDirectory="storage/tests/reports/coverage"/>
     </report>
   </coverage>
 
@@ -49,6 +49,9 @@
 
     <!-- Enable coverage if Xdebug/P-COV is present -->
     <env name="XDEBUG_MODE" value="coverage"/>
+
+    <!--  Crear un server en el PHPSTORM  -->
+    <env name="PHP_IDE_CONFIG" value="serverName=mystorepanel"/>
   </php>
 
   <source>

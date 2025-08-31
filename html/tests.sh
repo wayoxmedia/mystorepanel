@@ -4,7 +4,7 @@
 # Please run this script *inside your Docker container*
 
 start_time=$(date +%s)
-junit_file="tests/reports/results.xml"
+junit_file="storage/tests/reports/results.xml"
 ci_mode=false
 
 # 📛 Show help + error usage
