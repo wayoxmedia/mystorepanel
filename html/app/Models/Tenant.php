@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Database\Factories\TenantFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * Class Tenant.
@@ -16,11 +19,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property mixed $primary_domain
  * @property mixed $allowed_origins
  * @property mixed $status
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @method static TenantFactory factory($count = null, $state = [])
  */
 class Tenant extends Model
 {
+  use HasFactory;
+
   protected $fillable = [
     'name',
     'slug',

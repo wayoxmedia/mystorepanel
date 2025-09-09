@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Database\Seeders\BaseRolesSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use RuntimeException;
 
@@ -11,6 +12,10 @@ use RuntimeException;
 abstract class TestCase extends BaseTestCase
 {
   use CreatesApplication;
+
+  protected $seed = true;
+  protected $seeder = BaseRolesSeeder::class;
+
 
   /**
    * Set up the test environment.
