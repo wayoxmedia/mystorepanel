@@ -49,7 +49,7 @@ final class InvitationTest extends TestCase
       'token' => $inv->token,
     ]);
 
-    $res->assertStatus(302); // o $res->assertStatus(422) si es API
+    $res->assertStatus(302);
   }
 
   /**
@@ -66,7 +66,6 @@ final class InvitationTest extends TestCase
 
     $res = $this->post(route(self::R_RESEND, ['invitation' => $inv->id]));
 
-    // If your controller returns JSON 200, change this to assertStatus(200).
     $res->assertStatus(302);
   }
 
@@ -83,7 +82,7 @@ final class InvitationTest extends TestCase
       ->create();
 
     $res = $this->post(route(self::R_CANCEL, ['invitation' => $inv->id]));
-    $res->assertStatus(302); // adjust to 200 if API-style
+    $res->assertStatus(302);
 
     $this->assertDatabaseHas('invitations', [
       'id'     => $inv->id,

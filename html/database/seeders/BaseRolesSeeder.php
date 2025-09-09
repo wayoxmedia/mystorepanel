@@ -36,8 +36,8 @@ final class BaseRolesSeeder extends Seeder
 
     DB::table('roles')->upsert(
       $payload,
-      ['slug'],                     // unique key
-      ['name', 'scope', 'updated_at'] // columns to update on conflict
+      ['slug'],
+      ['name', 'scope', 'updated_at']
     );
   }
 }
