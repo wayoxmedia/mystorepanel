@@ -3,7 +3,6 @@
 
 @php
 use Illuminate\Support\Carbon;
-// xdebug_break();
 $tenant = $tenant ?? null;
 $seats = $seats ?? (
   $tenant ? [

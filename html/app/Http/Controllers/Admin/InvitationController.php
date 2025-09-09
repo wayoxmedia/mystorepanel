@@ -35,6 +35,7 @@ class InvitationController extends Controller
   public function index(Request $request): View
   {
     $actor = $request->user();
+
     $query = Invitation::query()->orderByDesc('created_at');
 
     if (! $actor->isPlatformSuperAdmin()) {

@@ -1,6 +1,5 @@
 @if(!empty($limitReached))
 @php
-  //xdebug_break();
   $upgradeUrl = ($isSA && $tenantId)
     ? route('admin.seats.upgrade.show', ['tenant_id' => $tenantId])
     : route('admin.seats.upgrade.show');
