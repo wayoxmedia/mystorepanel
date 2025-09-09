@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\InvitationFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Class Invitation
+ *
  * @property mixed $id
  * @property mixed $email
  * @property mixed $tenant_id
@@ -17,9 +20,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed $invited_by
  * @property mixed $last_sent_at
  * @property mixed $send_count
+ * @method static InvitationFactory factory($count = null, $state = [])
  */
 class Invitation extends Model
 {
+
+  use HasFactory;
+
   /** @var string */
   protected $table = 'invitations';
 
@@ -70,12 +77,19 @@ class Invitation extends Model
   }
 
   /** Helpers */
+
+  /**
+   * @return bool
+   */
   public function isExpired(): bool
   {
     return $this->status === 'expired'
       || ($this->expires_at && $this->expires_at->isPast());
   }
 
+  /**
+   * @return bool
+   */
   public function isPending(): bool
   {
     return $this->status === 'pending';
