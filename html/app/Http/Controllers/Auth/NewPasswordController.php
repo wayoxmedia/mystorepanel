@@ -9,21 +9,38 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
+/**
+ * Controller handling password reset requests.
+ */
 class NewPasswordController extends Controller
 {
-  public function create(string $token): View {
+  /**
+   * Display the password reset view.
+   * @param  string  $token
+   * @return View
+   */
+  public function create(string $token): View
+  {
     return view('auth.passwords.reset', [
       'token' => $token,
       'email' => request('email'),
     ]);
   }
 
+  /**
+   * Handle an incoming new password request.
+   *
+   * @param  ResetPasswordRequest  $request
+   * @return RedirectResponse
+   * @throws ValidationException
+   */
   public function store(ResetPasswordRequest $request): RedirectResponse
   {
     $status = Password::reset(
-      $request->only('email','password','password_confirmation','token'),
+      $request->only('email', 'password', 'password_confirmation', 'token'),
       function ($user, $password) {
         $user->password = Hash::make($password);
         $user->setRememberToken(Str::random(60));

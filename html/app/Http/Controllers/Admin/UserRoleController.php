@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Throwable;
 
+/**
+ * Controller for managing user roles within a multi-tenant application.
+ *
+ * Allows authorized users to view and update roles for other users,
+ * enforcing strict rules based on user types (platform vs tenant).
+ */
 class UserRoleController extends Controller
 {
 
@@ -36,10 +42,16 @@ class UserRoleController extends Controller
 
     // Filtra lo que el actor puede tocar
     $allowed = $allRoles->filter(function ($role) use ($actor, $user) {
-      if ($actor->isPlatformSuperAdmin()) return true; // todo
-      if ($role->scope === 'platform') return false;   // tenant manager no toca platform
+      if ($actor->isPlatformSuperAdmin()) {
+        return true; // todo
+      }
+      if ($role->scope === 'platform') {
+        return false;   // tenant manager no toca platform
+      }
       // evitar tocar platform SA desde tenant
-      if ($user->isPlatformSuperAdmin()) return false;
+      if ($user->isPlatformSuperAdmin()) {
+        return false;
+      }
       // y además el actor solo dentro de su tenant
       return (int)$actor->tenant_id === (int)$user->tenant_id;
     });
@@ -66,9 +78,8 @@ class UserRoleController extends Controller
     /** @var User $actor */
     $actor = auth()->user();
 
-    if (
-      !$this->canManageTarget($actor, $user) ||
-      !$actor->can('manage-user-roles', $user)
+    if (!$this->canManageTarget($actor, $user)
+      || !$actor->can('manage-user-roles', $user)
     ) {
       return back()->with('error', 'You are not allowed to modify roles for this user.');
     }
@@ -125,7 +136,7 @@ class UserRoleController extends Controller
     // - Only applies to tenant users
     if (!$isStaffTarget) {
       $ownerRoleId = Role::query()
-        ->where('slug','tenant_owner')
+        ->where('slug', 'tenant_owner')
         ->value('id');
 
       if ($ownerRoleId) {
@@ -155,7 +166,8 @@ class UserRoleController extends Controller
     // No changes? Exit early.
     $currentIds  = $user->roles()->pluck('roles.id')->all();
     $incomingIds = $roles->pluck('id')->all();
-    sort($currentIds); sort($incomingIds);
+    sort($currentIds);
+    sort($incomingIds);
     if ($currentIds === $incomingIds) {
       return back()->with('info', 'No changes to apply.');
     }
@@ -189,17 +201,21 @@ class UserRoleController extends Controller
   /**
    * @param  User  $actor
    * @param  User  $target
-   * @return bool
+   * @return boolean
    */
   private function canManageTarget(User $actor, User $target): bool
   {
-    if ($actor->isPlatformSuperAdmin()) return true;
+    if ($actor->isPlatformSuperAdmin()) {
+      return true;
+    }
 
     $isTenantManager = $actor->hasAnyRole(['tenant_owner','tenant_admin']);
     $sameTenant      = (int)$actor->tenant_id === (int)$target->tenant_id;
 
     // Nunca permitir que un tenant manager toque a un Platform SA
-    if ($target->isPlatformSuperAdmin()) return false;
+    if ($target->isPlatformSuperAdmin()) {
+      return false;
+    }
 
     return $isTenantManager && $sameTenant;
   }
