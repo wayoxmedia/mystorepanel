@@ -18,6 +18,8 @@ class TenantSeatsController extends Controller
 {
   /**
    * List tenants with seats usage and limits (only Platform SA).
+   * @param Request $request
+   * @return View
    */
   public function index(Request $request): View
   {

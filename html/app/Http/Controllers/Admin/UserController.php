@@ -276,7 +276,9 @@ class UserController extends Controller
     if ($mode === 'create') {
       // Staff (tenant_id null) no consume seats
       if (is_null($tenantId)) {
-        if (! $isPlatformSA) abort(403);
+        if (! $isPlatformSA) {
+          abort(403);
+        }
         $user = new User();
         $user->name      = (string) $request->string('name');
         $user->email     = (string) $request->string('email');
@@ -444,10 +446,10 @@ class UserController extends Controller
    * Platform super admins can create users for any tenant, while tenant managers
    * are restricted to their own tenant.
    *
-   * @param $input
-   * @return int|null
+   * @param mixed $input
+   * @return integer|null
    */
-  private function resolveTenantId($input): ?int
+  private function resolveTenantId(mixed $input): ?int
   {
     if (auth()->user()->isPlatformSuperAdmin()) {
       return $input ? (int) $input : null; // platform staff can be null (no tenant)
@@ -495,8 +497,8 @@ class UserController extends Controller
   /**
    * Validate how many seats are used and available.
    *
-   * @param  int  $tenantId
-   * @return bool
+   * @param  integer  $tenantId
+   * @return boolean
    */
   private function hasSeatsAvailable(int $tenantId): bool
   {
@@ -522,11 +524,12 @@ class UserController extends Controller
   /**
    * Check for existing pending invitations for the same tenant and email.
    *
-   * @param  int  $tenantId
+   * @param  integer  $tenantId
    * @param  string  $email
-   * @return bool
+   * @return boolean
    */
-  private function hasInvitationForTenantAndEmail(int $tenantId, string $email): bool{
+  private function hasInvitationForTenantAndEmail(int $tenantId, string $email): bool
+  {
     return Invitation::query()
       ->where('tenant_id', $tenantId)
       ->where('email', $email)
@@ -538,7 +541,7 @@ class UserController extends Controller
    * Check if any user exists with the given email.
    *
    * @param  string $email
-   * @return bool
+   * @return boolean
    */
   private function isRegisteredEmail(string $email): bool
   {

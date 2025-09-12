@@ -182,6 +182,9 @@ class InvitationAcceptanceController extends Controller
    * Accept invitation without seat check (for platform staff invitations).
    *
    * May be removed in the future.
+   * @param  AcceptInvitationRequest  $request
+   * @param  Invitation               $inv
+   * @return RedirectResponse
    */
   private function acceptWithoutSeatCheck(AcceptInvitationRequest $request, Invitation $inv): RedirectResponse
   {

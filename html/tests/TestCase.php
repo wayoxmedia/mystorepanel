@@ -13,14 +13,18 @@ abstract class TestCase extends BaseTestCase
 {
   use CreatesApplication;
 
-  protected $seed = true;
-  protected $seeder = BaseRolesSeeder::class;
+  /** @var $seed bool */
+  protected bool $seed = true;
+
+  /** @var $seeder class-string */
+  protected string $seeder = BaseRolesSeeder::class;
 
 
   /**
    * Set up the test environment.
    *
    * Hard safety guards so tests never touch production data.
+   * @throws RuntimeException
    * @return void
    */
   protected function setUp(): void

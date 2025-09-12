@@ -13,6 +13,9 @@ trait RoleHelpers
 {
   /**
    * Resolve a role id by slug (throws if not found).
+   * @param string $slug
+   * @throws InvalidArgumentException
+   * @return integer
    */
   protected function roleId(string $slug): int
   {
@@ -30,6 +33,12 @@ trait RoleHelpers
 
   /**
    * Attach a single role to the user via the role_user pivot.
+   *
+   * Idempotent: does nothing if the role is already attached.
+   * @param Authenticatable|Model $user
+   * @param string $slug
+   * @return void
+   * @throws InvalidArgumentException
    */
   protected function attachRoleBySlug(Authenticatable|Model $user, string $slug): void
   {
@@ -44,6 +53,12 @@ trait RoleHelpers
 
   /**
    * Attach multiple roles (array of slugs) to the user.
+   *
+   * Idempotent: does nothing if a role is already attached.
+   * @param Authenticatable|Model $user
+   * @param array $slugs
+   * @return void
+   * @throws InvalidArgumentException
    */
   protected function attachRolesBySlug(Authenticatable|Model $user, array $slugs): void
   {
@@ -54,6 +69,10 @@ trait RoleHelpers
 
   /**
    * Quick check helper for assertions.
+   * @param Authenticatable|Model $user
+   * @param string $slug
+   * @return boolean
+   * @throws InvalidArgumentException
    */
   protected function userHasRoleSlug(Authenticatable|Model $user, string $slug): bool
   {
@@ -68,6 +87,9 @@ trait RoleHelpers
 
   /**
    * Extract primary key from Authenticatable|Model|int.
+   * @param Authenticatable|Model|integer $user
+   * @return integer
+   * @throws InvalidArgumentException
    */
   private function extractUserId(Authenticatable|Model|int $user): int
   {

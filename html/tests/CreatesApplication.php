@@ -11,6 +11,7 @@ trait CreatesApplication
 {
   /**
    * Bootstrap the application for testing.
+   * @return Application
    */
   public function createApplication(): Application
   {
