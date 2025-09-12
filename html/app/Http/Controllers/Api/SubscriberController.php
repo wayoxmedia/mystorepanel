@@ -128,9 +128,7 @@ class SubscriberController extends Controller
   {
     // Validate the ID manually
     if (!is_numeric($id)
-      || !Subscriber::query()
-        ->where('id', $id)
-        ->exists()
+      || !Subscriber::query()->where('id', $id)->exists()
     ) {
       return response()->json(['message' => 'El ID proporcionado no es válido o no existe.'], 422);
     }

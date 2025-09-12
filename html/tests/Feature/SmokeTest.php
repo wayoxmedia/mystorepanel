@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
+/**
+ * Basic smoke tests to ensure we are running in a safe testing environment
+ * and the application boots with a working database connection.
+ *
+ * These tests do not modify the database state (no writes).
+ * The RefreshDatabase trait runs migrations before each test.
+ */
 final class SmokeTest extends TestCase
 {
   use RefreshDatabase;
@@ -16,8 +23,10 @@ final class SmokeTest extends TestCase
   /**
    * This test guarantees we are running in the testing env
    * and the DB name looks like a dedicated test database.
+   *
+   * @return void
    */
-  public function test_testing_env_and_database_are_safe(): void
+  public function testTestingEnvAndDatabaseAreSafe(): void
   {
     // APP_ENV must be "testing"
     $this->assertTrue(
@@ -28,7 +37,8 @@ final class SmokeTest extends TestCase
     // Active DB connection must be mysql_testing
     $defaultConnection = Config::get('database.default');
     $this->assertSame(
-      'mysql_testing', $defaultConnection,
+      'mysql_testing',
+      $defaultConnection,
       'DB connection should be "mysql_testing".'
     );
 
@@ -48,9 +58,11 @@ final class SmokeTest extends TestCase
 
   /**
    * Quick sanity check that the app boots and DB is reachable without touching prod.
+   *
    * RefreshDatabase runs migrations on the testing DB before this.
+   * @return void
    */
-  public function test_application_boots_and_db_accepts_simple_query(): void
+  public function testApplicationBootsAndDbAcceptsSimpleQuery(): void
   {
     // Basic config sanity
     $this->assertNotEmpty(

@@ -30,6 +30,7 @@ trait WithTenantSession
 {
   /**
    * Ensure baseline roles exist (idempotent).
+   * @return void
    */
   protected function ensureBaseRolesSeeded(): void
   {
@@ -38,6 +39,8 @@ trait WithTenantSession
 
   /**
    * Put the current tenant id in session using the keys expected by the app.
+   * @param Tenant|integer $tenant
+   * @return void
    */
   protected function withTenantSession(Tenant|int $tenant): void
   {
@@ -51,6 +54,7 @@ trait WithTenantSession
 
   /**
    * Disable only the custom tenant manager middleware when needed.
+   * @return void
    */
   protected function disableTenantManagerMiddleware(): void
   {
@@ -62,9 +66,9 @@ trait WithTenantSession
    * set tenant session, optionally disable 'tenant.manager',
    * and authenticate with guard 'web'.
    *
-   * @param  Tenant|int|null $tenant  If null, a new active tenant is created.
-   * @param  array           $userAttrs Extra attributes for User::factory().
-   * @param  bool            $disableTenantManager Whether to bypass only 'tenant.manager'.
+   * @param  Tenant|integer|null $tenant               If null, a new active tenant is created.
+   * @param  array               $userAttrs            Extra attributes for User::factory().
+   * @param  boolean             $disableTenantManager Whether to bypass only 'tenant.manager'.
    * @return array{0: Tenant, 1: User}
    */
   protected function actingAsTenantAdmin(
@@ -101,7 +105,11 @@ trait WithTenantSession
   /**
    * Same as actingAsTenantAdmin but uses an existing user (must belong to the tenant).
    *
-   * @throws InvalidArgumentException when the user doesn't belong to the tenant.
+   * @param  User           $admin                Must be verified, active, tenant_admin, and belong to the tenant.
+   * @param  Tenant|integer $tenant
+   * @param  boolean        $disableTenantManager Whether to bypass only 'tenant.manager'.
+   * @return void
+   * @throws InvalidArgumentException When the user doesn't belong to the tenant.
    */
   protected function actingAsExistingTenantAdmin(User $admin, Tenant|int $tenant, bool $disableTenantManager = true): void
   {

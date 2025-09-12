@@ -14,8 +14,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
-
-
 /**
  * Controller for managing user invitations within a multi-tenant application.
  *
@@ -31,6 +29,8 @@ class InvitationController extends Controller
    *   - ?status=pending|accepted|cancelled|expired|all  (default: pending)
    *   - ?tenant_id=ID   (solo para Platform SA)
    *   - ?include_expired=1  (cuando status=pending, incluye vencidas)
+   * @param Request $request
+   * @return View
    */
   public function index(Request $request): View
   {
@@ -72,7 +72,7 @@ class InvitationController extends Controller
       'status' => $status,
       'tenant' => $tenant,
       'seats' => $seats,
-      ]);
+    ]);
   }
 
   /**
@@ -80,6 +80,9 @@ class InvitationController extends Controller
    * - Si no está pendiente o está vencida: regenera token, pone status=pending y extiende vigencia.
    * - Si sigue vigente: solo extiende vigencia.
    * Nota: el envío de correo se deja para el mailable/notificación (próximo archivo).
+   * @param Request $request
+   * @param Invitation $invitation
+   * @return RedirectResponse
    */
   public function resend(Request $request, Invitation $invitation): RedirectResponse
   {
@@ -148,6 +151,9 @@ class InvitationController extends Controller
 
   /**
    * Cancel an invitation (frees the seat by leaving status!=pending).
+   * @param Request $request
+   * @param Invitation $invitation
+   * @return RedirectResponse
    */
   public function cancel(Request $request, Invitation $invitation): RedirectResponse
   {
@@ -176,6 +182,15 @@ class InvitationController extends Controller
   }
 
   /** ------- Helpers ------- */
+
+  /**
+   * Determine if the actor can manage (resend/cancel) the given invitation.
+   * - Platform SA: puede gestionar cualquiera.
+   * - Tenant Owner/Admin: solo las de su tenant.
+   * @param User $actor
+   * @param Invitation $inv
+   * @return boolean
+   */
   private function canManage(User $actor, Invitation $inv): bool
   {
     if ($actor->isPlatformSuperAdmin()) {
