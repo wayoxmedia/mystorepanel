@@ -9,12 +9,20 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Controller for handling seat upgrade requests within a multi-tenant application.
+ *
+ * Allows Platform Super Admins and Tenant Owners/Admins to request an increase in user seats.
+ * Requests are logged for auditing purposes.
+ */
 class SeatUpgradeController extends Controller
 {
   /**
    * Página informativa para solicitar aumento de seats.
    * - SA: puede seleccionar tenant (?tenant_id=)
    * - Tenant Owner/Admin: su propio tenant
+   * @param Request $request
+   * @return View
    */
   public function show(Request $request): View
   {
@@ -46,6 +54,8 @@ class SeatUpgradeController extends Controller
   /**
    * Enviar solicitud (placeholder). No cambia nada todavía.
    * Guarda auditoría y muestra un flash.
+   * @param Request $request
+   * @return RedirectResponse
    */
   public function request(Request $request): RedirectResponse
   {
@@ -63,8 +73,17 @@ class SeatUpgradeController extends Controller
     $used         = $tenant->seatsUsed();
 
     $data = $request->validate([
-      'desired_limit' => ['required','integer','min:'.max( $used + 1, 1 ), 'max:100000'],
-      'note'          => ['nullable','string','max:2000'],
+      'desired_limit' => [
+        'required',
+        'integer',
+        'min:'.max($used + 1, 1),
+        'max:100000'
+      ],
+      'note'          => [
+        'nullable',
+        'string',
+        'max:2000'
+      ],
     ]);
 
     // Solo auditoría por ahora (no cambiamos el límite aquí)

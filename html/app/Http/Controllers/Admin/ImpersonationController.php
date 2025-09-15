@@ -9,6 +9,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * Controller for user impersonation functionality within the admin panel.
+ *
+ * Allows authorized users to start and stop impersonating other users.
+ */
 class ImpersonationController extends Controller
 {
   /**

@@ -34,6 +34,13 @@ class LoginController extends Controller
     return view('auth.login.login');
   }
 
+  /**
+   * Handle an authentication attempt.
+   * Validates credentials, checks user status, and logs the user in if successful.
+   *
+   * @param LoginRequest $request
+   * @return RedirectResponse
+   */
   public function login(LoginRequest $request): RedirectResponse
   {
     $credentials = [
@@ -97,6 +104,12 @@ class LoginController extends Controller
     return redirect()->route('account.show');
   }
 
+  /**
+   * Log the user out of the application.
+   * Invalidates the session and regenerates the CSRF token.
+   *
+   * @return RedirectResponse
+   */
   public function logout(): RedirectResponse
   {
     if (Auth::check()) {
