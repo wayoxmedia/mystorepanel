@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\PlaygroundController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -141,3 +142,7 @@ Route::middleware(['auth:web'])->group(function () {
 Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])
   ->name('impersonate.stop')
   ->middleware('auth');
+
+// Playground route for testing (not part of the main app)
+Route::get('playground', [PlaygroundController::class, 'index'])
+  ->name('playground.index');
