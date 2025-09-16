@@ -33,6 +33,9 @@ return [
     'headers' => [
       'X-System' => 'mystorepanel',
     ],
+
+    'dispatch' => env('MAIL_DISPATCH', 'queue'), // 'queue' | 'send' | 'auto'
+    'queue'    => env('MAIL_QUEUE', 'mail'),     // queue name when queueing
   ],
 
   // Seats configuration, currently, suspended users count as seats.
