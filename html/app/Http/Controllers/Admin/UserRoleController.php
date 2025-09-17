@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateUserRolesRequest;
 use App\Models\AuditLog;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -72,11 +73,13 @@ class UserRoleController extends Controller
    * @param  UpdateUserRolesRequest  $request
    * @param  User  $user
    * @return RedirectResponse
+   * @throws AuthorizationException
    */
   public function update(UpdateUserRolesRequest $request, User $user): RedirectResponse
   {
     /** @var User $actor */
     $actor = auth()->user();
+    $this->authorize('updateRole', $user);
 
     if (!$this->canManageTarget($actor, $user)
       || !$actor->can('manage-user-roles', $user)

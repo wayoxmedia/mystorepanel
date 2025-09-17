@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -21,6 +22,7 @@ class ImpersonationController extends Controller
    *
    * @param  User  $user
    * @return RedirectResponse
+   * @throws AuthorizationException
    */
   public function start(User $user): RedirectResponse
   {
@@ -28,6 +30,7 @@ class ImpersonationController extends Controller
     if (session()->has('impersonator_id')) {
       return back()->with('error', 'Already impersonating. Stop current session first.');
     }
+    $this->authorize('impersonate', $user);
 
     // Auth
     Gate::authorize('impersonate-user', $user);
@@ -38,9 +41,11 @@ class ImpersonationController extends Controller
     }
 
     // Saves actor in the session
+    /** @var User $user */
+    $user = Auth::user();
     session([
       'impersonator_id'    => Auth::id(),
-      'impersonator_email' => Auth::user()->email,
+      'impersonator_email' => $user->email,
     ]);
 
     // Audit (register who started impersonation and who is being impersonated)
@@ -53,7 +58,7 @@ class ImpersonationController extends Controller
     ]);
 
     // Logs in as the target user
-    Auth::login($user, false);
+    Auth::login($user);
     request()->session()->regenerate();
 
     return redirect('/')
@@ -74,7 +79,9 @@ class ImpersonationController extends Controller
 
     $impersonatorId    = (int) session('impersonator_id');
     $impersonatedId    = (int) Auth::id();
-    $impersonatedEmail = Auth::user()?->email;
+    /** @var User $user */
+    $user = Auth::user();
+    $impersonatedEmail = $user?->email;
 
     // Audit
     AuditLog::query()->create([
@@ -90,7 +97,7 @@ class ImpersonationController extends Controller
     request()->session()->invalidate();
     request()->session()->regenerateToken();
 
-    Auth::loginUsingId($impersonatorId, false);
+    Auth::loginUsingId($impersonatorId);
     request()->session()->regenerate();
 
     // Cleans up impersonation session data (flags)
