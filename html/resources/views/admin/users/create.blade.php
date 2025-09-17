@@ -1,6 +1,8 @@
+@php use App\Models\User; @endphp
 @extends('admin.layouts.app')
 
 @php
+  /** @var User $actor */
   $isSA = $actor->isPlatformSuperAdmin();
 @endphp
 

@@ -10,6 +10,7 @@ use App\Models\Invitation;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\MailDispatch;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Throwable;
@@ -61,7 +63,9 @@ class UserController extends Controller
     }
 
     if ($request->filled('role')) {
-      $query->whereHas('roles', fn ($qr) => $qr->where('slug', $request->string('role')));
+      $query->whereHas(
+        'roles',
+        fn ($qr) => $qr->where('slug', $request->string('role')));
     }
 
     if ($request->filled('q')) {
@@ -75,18 +79,17 @@ class UserController extends Controller
     $users = $query->orderByDesc('id')
       ->paginate(15)
       ->withQueryString();
-    $tenants = auth()->user()->isPlatformSuperAdmin()
+    $tenants = $user->isPlatformSuperAdmin()
       ? Tenant::query()->orderBy('name')
         ->get(['id','name'])
       : Tenant::query()
-        ->where('id', auth()->user()->tenant_id)
+        ->where('id', $user->tenant_id)
         ->get(['id','name']);
     $roles = Role::query()
       ->orderBy('id')
       ->get(['id', 'slug','name']);
 
-    $actor = auth()->user();
-    $tenant = $actor->tenant; // null para Platform SA
+    $tenant = $user->tenant; // null para Platform SA
 
     $seats = null;
     if ($tenant) {
@@ -129,7 +132,9 @@ class UserController extends Controller
     // Roles the actor can assign (UI)
     $roles = $this->assignableRolesFor($actor);
 
-    return view('admin.users.create', compact('tenants', ['roles', 'actor']));
+    return view(
+      'admin.users.create',
+      compact('tenants', ['roles', 'actor']));
   }
 
   /**
@@ -144,6 +149,7 @@ class UserController extends Controller
     // TODO: Move logic to Service class
     $this->authorizeCreate();
 
+    /** @var User $actor */
     $actor    = auth()->user();
     $mode     = (string) $request->string('mode');
     $roleSlug = (string) $request->string('role_slug');
@@ -178,7 +184,9 @@ class UserController extends Controller
       // Para staff (tenant_id null) NO hay seats; para tenants, sí.
       if (! is_null($tenantId)) {
         try {
-          DB::transaction(function () use ($request, $tenantId, $actor, $role, $email) {
+          DB::transaction(function () use (
+            $request, $tenantId, $actor, $role, $email
+          ) {
             // Check seats availability
             if (!$this->hasSeatsAvailable($tenantId)) {
               abort(422, 'No seats available for this tenant.');
@@ -191,7 +199,9 @@ class UserController extends Controller
 
             // Avoid pending invitation
             if ($this->hasInvitationForTenantAndEmail($tenantId, $email)) {
-              abort(422, 'There is already a pending invitation for this email.');
+              abort(
+                422,
+                'There is already a pending invitation for this email.');
             }
 
             $token = Str::random(64);
@@ -201,7 +211,11 @@ class UserController extends Controller
               'tenant_id'   => $tenantId,
               'role_id'     => $role->id,
               'token'       => $token,
-              'expires_at'  => now()->addHours(config('mystore.invitations.expires_hours', 168)), // 7d por defecto
+              'expires_at'  => now()->addHours(
+                config(
+                  'mystore.invitations.expires_hours',
+                  168)
+              ), // 7d por defecto
               'status'      => 'pending',
               'invited_by'  => $actor->id,
               'last_sent_at'=> now(),
@@ -209,7 +223,10 @@ class UserController extends Controller
             ]);
 
             // Enviar correo de invitación
-            Mail::to($inv->email)->send(new InvitationMail($inv));
+            MailDispatch::deliver(
+              new InvitationMail($inv),
+              $inv->email
+            );
 
             AuditLog::query()->create([
               'actor_id'     => $actor->id,
@@ -242,7 +259,11 @@ class UserController extends Controller
           'tenant_id'   => null,
           'role_id'     => $role->id,
           'token'       => $token,
-          'expires_at'  => now()->addHours(config('mystore.invitations.expires_hours', 168)),
+          'expires_at'  => now()->addHours(
+            config(
+              'mystore.invitations.expires_hours',
+              168)
+          ),
           'status'      => 'pending',
           'invited_by'  => $actor->id,
           'last_sent_at'=> now(),
@@ -250,7 +271,10 @@ class UserController extends Controller
         ]);
 
         // Send invitation email
-        Mail::to($inv->email)->send(new InvitationMail($inv));
+        MailDispatch::deliver(
+          new InvitationMail($inv),
+          $inv->email
+        );
 
         AuditLog::query()->create([
           'actor_id'     => $actor->id,
@@ -297,12 +321,16 @@ class UserController extends Controller
           'meta'         => ['tenant_id' => null, 'role_slug' => $role->slug],
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+        return redirect()
+          ->route('admin.users.index')
+          ->with('success', 'User created successfully.');
       }
 
       // Tenants: transacción with lock and seats validation
       try {
-        DB::transaction(function () use ($request, $tenantId, $actor, $role, $email, &$user) {
+        DB::transaction(function () use (
+          $request, $tenantId, $actor, $role, $email, &$user
+        ) {
           // Check seats availability
           if (!$this->hasSeatsAvailable($tenantId)) {
             abort(422, 'No seats available for this tenant.');
@@ -345,7 +373,9 @@ class UserController extends Controller
         return back()->withErrors(['create' => $e->getMessage()]);
       }
 
-      return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+      return redirect()
+        ->route('admin.users.index')
+        ->with('success', 'User created successfully.');
     }
 
     return back()->withErrors(['mode' => 'Invalid mode.']);
@@ -364,6 +394,7 @@ class UserController extends Controller
    */
   public function destroy(User $user): RedirectResponse
   {
+    /** @var User $actor */
     $actor = auth()->user();
 
     // 1. Permission: Never delete Platform SA
@@ -412,14 +443,17 @@ class UserController extends Controller
               ->count();
 
             if ($otherOwners === 0) {
-              return back()->with('error', 'You cannot delete the last Tenant Owner for this tenant.');
+              return back()
+                ->with('error', 'You cannot delete the last Tenant Owner for this tenant.');
             }
           }
         }
       }
     } catch (Throwable $e) {
       // If something fails when checking the invariant, better prevent deletion
-      return back()->with('error', 'Unable to verify tenant owner invariant. User not deleted.');
+      Log::error('Error checking tenant owner invariant: '.$e->getMessage());
+      return back()
+        ->with('error', 'Unable to verify tenant owner invariant. User not deleted.');
     }
 
     // Hard delete
@@ -451,11 +485,13 @@ class UserController extends Controller
    */
   private function resolveTenantId(mixed $input): ?int
   {
-    if (auth()->user()->isPlatformSuperAdmin()) {
+    /** @var User $user */
+    $user = auth()->user();
+    if ($user->isPlatformSuperAdmin()) {
       return $input ? (int) $input : null; // platform staff can be null (no tenant)
     }
     // Tenant managers must stick to their own tenant
-    return auth()->user()->tenant_id;
+    return $user->tenant_id;
   }
 
   /**
@@ -466,6 +502,7 @@ class UserController extends Controller
    */
   private function authorizeViewAny(): void
   {
+    /** @var User $user */
     $user = auth()->user();
     if ($user->isPlatformSuperAdmin()) {
       return;
@@ -485,6 +522,7 @@ class UserController extends Controller
    */
   private function authorizeCreate(): void
   {
+    /** @var User $user */
     $user = auth()->user();
     if ($user->isPlatformSuperAdmin()) {
       return;
@@ -569,7 +607,10 @@ class UserController extends Controller
 
     return Role::query()
       ->where('scope', 'tenant')
-      ->where('slug', '!=', 'platform_super_admin') // redundant, for security
+      ->where(
+        'slug',
+        '!=',
+        'platform_super_admin') // redundant, for security
       ->orderBy('id')
       ->get(['id','name','slug','scope']);
   }
