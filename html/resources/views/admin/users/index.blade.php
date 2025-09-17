@@ -1,9 +1,12 @@
+@php use App\Models\User; @endphp
 @extends('admin.layouts.app')
 @section('title','Users')
 
 @section('content')
 @php
-  $isSA = auth()->user()?->isPlatformSuperAdmin();
+  /** @var User|null $actualUser */
+  $actualUser = auth()->user();
+  $isSA = $actualUser?->isPlatformSuperAdmin();
   $limitReached = !empty($tenant) && !empty($seats) && ($seats['available'] <= 0);
   // Attempt to deduce tenant_id if not explicitly provided
   $tenantId = $tenantId
@@ -79,8 +82,9 @@
   };
 @endphp
               <span class="badge text-bg-{{ $badge }}">{{ $status }}</span>
-@if(method_exists($u, 'hasVerifiedEmail') && ! $u->hasVerifiedEmail())
-              <span class="badge text-bg-secondary ms-1" title="Email not verified">Unverified</span>
+@if(!$u->hasVerifiedEmail())
+              <span class="badge text-bg-secondary ms-1"
+                    title="Email not verified">Unverified</span>
 @endif
             </td>
 
@@ -98,7 +102,8 @@
 {{-- Estado: Activate / Suspend / Lock / Delete --}}
 @can('manage-user-status', $u)
 @if($u->status !== 'active')
-                <form method="post" action="{{ route('admin.users.status.update', $u) }}"
+                <form method="post"
+                      action="{{ route('admin.users.status.update', $u) }}"
                       onsubmit="return confirm('Activate {{ $u->email }}?');">
 @csrf
                   <input type="hidden" name="status" value="active">
@@ -116,7 +121,8 @@
 @endif
 
 @if($u->status !== 'locked')
-                <form method="post" action="{{ route('admin.users.status.update', $u) }}"
+                <form method="post"
+                      action="{{ route('admin.users.status.update', $u) }}"
                       onsubmit="return confirm('Lock {{ $u->email }}?');">
 @csrf
                   <input type="hidden" name="status" value="locked">
@@ -124,8 +130,11 @@
                 </form>
 @endif
 
-                <form method="post" action="{{ route('admin.users.destroy', $u) }}"
-                      onsubmit="return confirm('Delete {{ $u->email }} permanently? This cannot be undone.');">
+                <form method="post"
+                      action="{{ route('admin.users.destroy', $u) }}"
+                      onsubmit="return confirm(
+                        'Delete {{ $u->email }} permanently? This cannot be undone.'
+                        );">
 @csrf
 @method('DELETE')
                   <button class="btn btn-sm btn-danger">Delete</button>
@@ -134,7 +143,9 @@
 
 {{-- Impersonate --}}
 @can('impersonate-user', $u)
-                  <form method="post" action="{{ route('admin.impersonate.start', $u) }}" class="d-inline">
+                  <form method="post"
+                        action="{{ route('admin.impersonate.start', $u) }}"
+                        class="d-inline">
 @csrf
                     <button class="btn btn-sm btn-outline-dark">Impersonate</button>
                   </form>
@@ -144,7 +155,8 @@
           </tr>
 @empty
           <tr>
-            <td colspan="{{ $isSA ? 5 : 4 }}" class="text-center text-muted py-4">No users found.</td>
+            <td colspan="{{ $isSA ? 5 : 4 }}"
+                class="text-center text-muted py-4">No users found.</td>
           </tr>
 @endforelse
         </tbody>

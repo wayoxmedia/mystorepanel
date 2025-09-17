@@ -79,7 +79,8 @@ class InvitationAcceptanceController extends Controller
     }
 
     // Ensure the email is still free
-    if (User::query()->where('email', $inv->email)->exists()) {
+    $usedEmail = User::query()->where('email', $inv->email)->exists();
+    if ($usedEmail) {
       // Mark invitation as accepted anyway to avoid reuse
       $inv->update(['status' => 'accepted', 'expires_at' => now()]);
       return redirect('/')
@@ -92,15 +93,29 @@ class InvitationAcceptanceController extends Controller
       return $this->acceptWithoutSeatCheck($request, $inv);
     }
 
+    // 4) Seat-limit + duplicate email checks inside a transaction
+    $autoVerify = (bool) config(
+      'mystore.invitations.auto_verify_on_accept',
+      false
+    );
+
     try {
-      return DB::transaction(function () use ($request, $inv) {
+      return DB::transaction(function () use ($request, $inv, $autoVerify) {
         /** @var Tenant $tenant */
-        $tenant = Tenant::query()->whereKey($inv->tenant_id)->lockForUpdate()->firstOrFail();
+        $tenant = Tenant::query()
+          ->whereKey($inv->tenant_id)
+          ->lockForUpdate()
+          ->firstOrFail();
 
         // Reread invitation with lock to ensure it's still valid/pending
         /** @var Invitation $freshInv */
-        $freshInv = Invitation::query()->whereKey($inv->id)->lockForUpdate()->firstOrFail();
-        if ($freshInv->status !== 'pending' || ($freshInv->expires_at && $freshInv->expires_at->isPast())) {
+        $freshInv = Invitation::query()
+          ->whereKey($inv->id)
+          ->lockForUpdate()
+          ->firstOrFail();
+        if ($freshInv->status !== 'pending'
+          || ($freshInv->expires_at && $freshInv->expires_at->isPast())
+        ) {
           return redirect('/')->with('error', 'Invitation is no longer valid.');
         }
 
@@ -117,10 +132,12 @@ class InvitationAcceptanceController extends Controller
           // Leave invitation pending (still "reserving" seat),
           // but block acceptance until seats are freed.
           return redirect('/')
-            ->with('error', 'No seats available for this tenant. Please contact your administrator.');
+            ->with(
+              'error',
+              'No seats available for this tenant. Please contact your administrator.');
         }
 
-        // Email still libre
+        // Email still free
         $email = (string) $freshInv->email;
         if (User::query()->where('email', $email)->exists()) {
           // Mark as accepted anyway to avoid reuse; the user already exists (edge case).
@@ -135,6 +152,7 @@ class InvitationAcceptanceController extends Controller
         $user->tenant_id = $tenant->id;
         $user->status    = 'active';
         $user->password  = Hash::make((string) $request->input('password'));
+        $user->email_verified_at = $autoVerify ? now() : null;
         $user->save();
 
         // Attach role (if any)
@@ -186,8 +204,10 @@ class InvitationAcceptanceController extends Controller
    * @param  Invitation               $inv
    * @return RedirectResponse
    */
-  private function acceptWithoutSeatCheck(AcceptInvitationRequest $request, Invitation $inv): RedirectResponse
-  {
+  private function acceptWithoutSeatCheck(
+    AcceptInvitationRequest $request,
+    Invitation $inv
+  ): RedirectResponse {
     // Si ya está aceptada/caducada
     if ($inv->status !== 'pending' || ($inv->expires_at && $inv->expires_at->isPast())) {
       return redirect('/')->with('error', 'Invitation is no longer valid.');
@@ -218,12 +238,16 @@ class InvitationAcceptanceController extends Controller
       'action'       => 'invite.accepted',
       'subject_type' => Invitation::class,
       'subject_id'   => $inv->id,
-      'meta'         => ['email' => $inv->email, 'tenant_id' => null, 'role_id' => $inv->role_id],
+      'meta'         => [
+        'email' => $inv->email,
+        'tenant_id' => null,
+        'role_id' => $inv->role_id
+      ],
     ]);
 
     Auth::guard('web')->login($user);
     request()->session()->regenerate();
-    if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
+    if (!$user->hasVerifiedEmail()) {
       $user->sendEmailVerificationNotification();
     }
 

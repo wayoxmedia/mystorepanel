@@ -4,6 +4,7 @@ return [
   'invitations' => [
     'expires_hours' => 168, // invitation token validity, 7 days
     'cooldown_minutes' => 5,
+    'auto_verify_on_accept' => env('INVITES_AUTO_VERIFY_ON_ACCEPT', false),
   ],
 
   'system_actor_id' => 0,

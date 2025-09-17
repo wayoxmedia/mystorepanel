@@ -1,18 +1,21 @@
+@php use App\Models\User; @endphp
 @extends('admin.layouts.app')
 @section('title','Page expired')
 
 @section('content')
   @php
+    /** @var User|null $user */
     $user = auth()->user();
     $isSA = $user?->isPlatformSuperAdmin();
-    $isManager = $user && method_exists($user,'hasAnyRole') && $user->hasAnyRole(['tenant_owner','tenant_admin']);
+    $isManager = $user && $user->hasAnyRole(['tenant_owner','tenant_admin']);
   @endphp
 
   <div class="card border-warning">
     <div class="card-body">
       <h1 class="h4 text-warning mb-2">419 — Page expired</h1>
       <p class="mb-3">
-        Your session or the security token has expired. This can happen if the page was open for a long time or after logging out.
+        Your session or the security token has expired.
+        This can happen if the page was open for a long time or after logging out.
       </p>
 
       <div class="d-flex flex-wrap gap-2">
@@ -37,7 +40,7 @@
       </div>
 
       @auth
-        @if(method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail())
+        @if(!$user->hasVerifiedEmail())
           <div class="alert alert-info mt-3 mb-0">
             If you were verifying your email, please use the most recent link. You can resend it from My Account.
             <form method="post" action="{{ route('verification.send') }}" class="d-inline ms-2">

@@ -129,7 +129,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
    */
   public function hasAnyRole(array $slugs): bool
   {
-    return $this->roles->contains(fn ($r) => in_array($r->slug, $slugs, true));
+    return $this->roles->contains(
+      fn ($r) => in_array($r->slug, $slugs, true)
+    );
   }
 
   /**

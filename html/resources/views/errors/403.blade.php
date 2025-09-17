@@ -1,11 +1,13 @@
+@php use App\Models\User; @endphp
 @extends('admin.layouts.app')
 @section('title','Access denied')
 
 @section('content')
   @php
+    /** @var User|null $user */
     $user = auth()->user();
     $isSA = $user?->isPlatformSuperAdmin();
-    $isManager = $user && method_exists($user,'hasAnyRole') && $user->hasAnyRole(['tenant_owner','tenant_admin']);
+    $isManager = $user && $user->hasAnyRole(['tenant_owner','tenant_admin']);
   @endphp
 
   <div class="card border-danger">
@@ -23,16 +25,19 @@
           </form>
         @endif
 
-        <a href="{{ route('account.show') }}" class="btn btn-outline-secondary">My Account</a>
+        <a href="{{ route('account.show') }}"
+           class="btn btn-outline-secondary">My Account</a>
 
         @if($isSA || $isManager)
-          <a href="{{ route('admin.users.index') }}" class="btn btn-primary">Go to Users</a>
+          <a href="{{ route('admin.users.index') }}"
+             class="btn btn-primary">Go to Users</a>
         @endif
 
-        <a href="{{ url()->previous() }}" class="btn btn-link">Back</a>
+        <a href="{{ url()->previous() }}"
+           class="btn btn-link">Back</a>
       </div>
 
-      @if($user && method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail())
+      @if($user && !$user->hasVerifiedEmail())
         <div class="alert alert-warning mt-3 mb-0">
           <strong>Note:</strong> your email isn’t verified. Some areas may be restricted.
           <form method="post" action="{{ route('verification.send') }}" class="d-inline ms-2">
