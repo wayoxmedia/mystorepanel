@@ -157,7 +157,7 @@ class InvitationAcceptanceController extends Controller
 
         // Attach role (if any)
         if ($freshInv->role_id) {
-          $user->roles()->syncWithoutDetaching([$freshInv->role_id]);
+          $user->roles()->sync([$freshInv->role_id]);
         }
 
         // Close invitation
@@ -228,7 +228,7 @@ class InvitationAcceptanceController extends Controller
     $user->save();
 
     if ($inv->role_id) {
-      $user->roles()->syncWithoutDetaching([$inv->role_id]);
+      $user->roles()->sync([$inv->role_id]);
     }
 
     $inv->update(['status' => 'accepted', 'expires_at' => now()]);

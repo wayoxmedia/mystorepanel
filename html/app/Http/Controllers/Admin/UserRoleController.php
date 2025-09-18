@@ -44,7 +44,7 @@ class UserRoleController extends Controller
     // Filtra lo que el actor puede tocar
     $allowed = $allRoles->filter(function ($role) use ($actor, $user) {
       if ($actor->isPlatformSuperAdmin()) {
-        return true; // todo
+        return true; // All roles
       }
       if ($role->scope === 'platform') {
         return false;   // tenant manager no toca platform
@@ -63,7 +63,7 @@ class UserRoleController extends Controller
       'user'          => $user,
       'allRoles'      => $allRoles,
       'allowedSlugs'  => $allowed->pluck('slug')->all(),
-      'currentSlugs'  => $current,
+      'currentSlug'   => $current,
     ]);
   }
 
@@ -92,15 +92,8 @@ class UserRoleController extends Controller
       return back()->with('error', 'You cannot change your own roles here.');
     }
 
-    // Input Validation.
-    $data = $request->validate([
-      'roles'   => ['required','array'],
-      'roles.*' => ['string','exists:roles,slug'],
-    ]);
-
-
     // Requested roles.
-    $incomingSlugs = collect($data['roles'])
+    $incomingSlugs = collect($request->roleSlug())
       ->filter()
       ->unique()
       ->values();

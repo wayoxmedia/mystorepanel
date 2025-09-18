@@ -22,24 +22,16 @@ return new class extends Migration
   public function up(): void
   {
     // invitations(token)
-    if (! $this->indexExists('invitations', 'invitations_token_idx')) {
-      DB::statement('CREATE INDEX invitations_token_idx ON invitations (token)');
-    }
+    DB::statement('CREATE INDEX invitations_token_idx ON invitations (token)');
 
     // invitations(tenant_id, status, created_at) --> listing/filtering/pagination
-    if (! $this->indexExists('invitations', 'invitations_tenant_status_created_idx')) {
-      DB::statement('CREATE INDEX invitations_tenant_status_created_idx ON invitations (tenant_id, status, created_at)');
-    }
+    DB::statement('CREATE INDEX invitations_tenant_status_created_idx ON invitations (tenant_id, status, created_at)');
 
     // invitations(tenant_id, email) --> fast lookups / duplicate checks per-tenant
-    if (! $this->indexExists('invitations', 'invitations_tenant_email_idx')) {
-      DB::statement('CREATE INDEX invitations_tenant_email_idx ON invitations (tenant_id, email)');
-    }
+    DB::statement('CREATE INDEX invitations_tenant_email_idx ON invitations (tenant_id, email)');
 
     // users(tenant_id, status) --> seat counts / filtering active users per-tenant
-    if (! $this->indexExists('users', 'users_tenant_status_idx')) {
-      DB::statement('CREATE INDEX users_tenant_status_idx ON users (tenant_id, status)');
-    }
+    DB::statement('CREATE INDEX users_tenant_status_idx ON users (tenant_id, status)');
   }
 
   public function down(): void

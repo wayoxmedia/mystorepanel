@@ -1,6 +1,12 @@
 @extends('admin.layouts.app')
 @section('title', 'Manage Roles')
-
+@php
+/**
+ * @var $allRoles
+ * @var $currentSlug
+ * @var $allowedSlugs
+ */
+@endphp
 @section('content')
   <div class="container">
     @if($errors->any())
@@ -30,16 +36,16 @@
                 <h6 class="text-uppercase text-muted">{{ $scope }} roles</h6>
                 @foreach($roles as $r)
                   @php
-                    $checked = in_array($r->slug, $currentSlugs, true);
+                    $checked = in_array($r->slug, $currentSlug, true);
                     $allowed = in_array($r->slug, $allowedSlugs, true);
                   @endphp
                   <div class="form-check mb-2">
                     <input class="form-check-input"
-                           type="checkbox"
-                           name="role_slugs[]"
+                           type="radio"
+                           name="role"
                            id="role_{{ $r->slug }}"
                            value="{{ $r->slug }}"
-                      {{ $checked ? 'checked' : '' }}
+                      {{ old('role', $currentSlug)[0] === $r->slug ? 'checked' : '' }}
                       {{ $allowed ? '' : 'disabled' }}>
                     <label class="form-check-label" for="role_{{ $r->slug }}">
                       {{ $r->name }} <span class="text-muted">({{ $r->slug }})</span>

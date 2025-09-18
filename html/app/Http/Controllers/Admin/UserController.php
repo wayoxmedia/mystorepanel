@@ -307,11 +307,10 @@ class UserController extends Controller
         $user->name      = (string) $request->string('name');
         $user->email     = (string) $request->string('email');
         $user->tenant_id = null;
+        $user->role      = (string) $role->id;
         $user->status    = 'active';
         $user->password  = bcrypt((string) $request->string('password'));
         $user->save();
-
-        $user->roles()->syncWithoutDetaching([$role->id]);
 
         AuditLog::query()->create([
           'actor_id'     => $actor->id,
@@ -355,7 +354,7 @@ class UserController extends Controller
           $user->password  = bcrypt((string) $request->string('password'));
           $user->save();
 
-          $user->roles()->syncWithoutDetaching([$role->id]);
+          $user->roles()->sync([$role->id]);
 
           AuditLog::query()->create([
             'actor_id'     => $actor->id,
