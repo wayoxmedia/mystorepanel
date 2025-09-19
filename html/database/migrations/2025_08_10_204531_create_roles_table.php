@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
   /**
-   * Create roles and role_user pivot, and upsert base roles.
+   * Create roles table, and upsert base roles.
    */
   public function up(): void
   {
@@ -20,22 +20,6 @@ return new class extends Migration
         ->default('tenant')
         ->index();
       $table->timestamps();
-    });
-
-    Schema::create('role_user', function (Blueprint $table) {
-      $table->unsignedBigInteger('user_id');
-      $table->unsignedBigInteger('role_id');
-      $table->timestamps();
-
-      $table->primary(['user_id', 'role_id']);
-      $table->foreign('user_id')
-        ->references('id')
-        ->on('users')
-        ->cascadeOnDelete();
-      $table->foreign('role_id')
-        ->references('id')
-        ->on('roles')
-        ->cascadeOnDelete();
     });
 
     // Upsert base roles
@@ -84,7 +68,6 @@ return new class extends Migration
 
   public function down(): void
   {
-    Schema::dropIfExists('role_user');
     Schema::dropIfExists('roles');
   }
 };

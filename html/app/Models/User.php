@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -18,14 +17,14 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * Class User
  * @property mixed $id
  * @property mixed $tenant_id
- * @property mixed $role
+ * @property mixed $role_id
  * @property mixed $name
  * @property mixed $email
  * @property mixed $password
  * @property mixed $remember_token
  * @property mixed $email_verified_at
  * @property Tenant|null $tenant
- * @property Role[] $roles
+ * @property Role $role
  * @property string $status
  */
 class User extends Authenticatable implements JWTSubject, MustVerifyEmailContract
@@ -41,7 +40,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
     'email',
     'password',
     'tenant_id',
-    'role',
     'status',
   ];
 
@@ -95,17 +93,17 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
    */
   public function tenant(): BelongsTo
   {
-    return $this->belongsTo(Tenant::class);
+    return $this->belongsTo(Tenant::class, 'tenant_id', 'id');
   }
 
   /**
-   * The roles this user has. (multi-tenant per user).
+   * The role this user has.
    *
-   * @return BelongsToMany
+   * @return BelongsTo
    */
-  public function roles(): BelongsToMany
+  public function role(): BelongsTo
   {
-    return $this->belongsToMany(Role::class)->withTimestamps();
+    return $this->belongsTo(Role::class, 'role_id', 'id');
   }
 
   /**
@@ -118,7 +116,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
    */
   public function hasRole(string $slug): bool
   {
-    return $this->roles->contains(fn ($r) => $r->slug === $slug);
+    $role = $this->getRoleSlug();
+    return $role === $slug;
   }
 
   /**
@@ -129,7 +128,26 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
    */
   public function hasAnyRole(array $slugs): bool
   {
-    return $this->roles->contains(fn ($r) => in_array($r->slug, $slugs, true));
+    $role = $this->getRoleSlug();
+    return in_array($role, $slugs, true);
+  }
+
+  /**
+   * Get the role slug for the user.
+   * @return string
+   */
+  private function getRoleSlug(): string
+  {
+    return $this->role()->value('slug') ?? '';
+  }
+
+  /**
+   * Get the role slug for the user.
+   * @return string
+   */
+  private function getRoleName(): string
+  {
+    return $this->role()->value('name') ?? '';
   }
 
   /**

@@ -34,12 +34,12 @@ class UserFactory extends Factory
    * Allowed role slugs present in the roles table.
    * Keep in sync with BaseRolesSeeder.
    */
-  private const ALLOWED_ROLE_SLUGS = [
-    'platform_super_admin',
-    'tenant_owner',
-    'tenant_admin',
-    'tenant_editor',
-    'tenant_viewer',
+  private const ALLOWED_ROLES = [
+    'platform_super_admin' => 1,
+    'tenant_owner' => 2,
+    'tenant_admin' => 3,
+    'tenant_editor' => 4,
+    'tenant_viewer' => 5,
   ];
 
   /**
@@ -68,7 +68,7 @@ class UserFactory extends Factory
 
       // Extra columns from your users table
       'status'            => 'active',
-      'role'              => 'editor',
+      'role_id'           => 5,
       'tenant_id'         => null,
     ];
   }
@@ -149,7 +149,6 @@ class UserFactory extends Factory
   /* ------------------------------
    | Role helpers (wrappers per role)
    | - Set users.role to the slug
-   | - Attach pivot (role_user) ensuring the role exists
    * ------------------------------ */
 
   /**
@@ -159,7 +158,9 @@ class UserFactory extends Factory
    */
   public function asPlatformSuperAdmin(): static
   {
-    return $this->withRoleSlug('platform_super_admin');
+    return $this->state(
+      fn () => ['role_id' => self::ALLOWED_ROLES['platform_super_admin']]
+    );
   }
 
   /**
@@ -169,7 +170,9 @@ class UserFactory extends Factory
    */
   public function asTenantOwner(): static
   {
-    return $this->withRoleSlug('tenant_owner');
+    return $this->state(
+      fn () => ['role_id' => self::ALLOWED_ROLES['tenant_owner']]
+    );
   }
 
   /**
@@ -179,7 +182,9 @@ class UserFactory extends Factory
    */
   public function asTenantAdmin(): static
   {
-    return $this->withRoleSlug('tenant_admin');
+    return $this->state(
+      fn () => ['role_id' => self::ALLOWED_ROLES['tenant_admin']]
+    );
   }
 
   /**
@@ -189,7 +194,9 @@ class UserFactory extends Factory
    */
   public function asTenantEditor(): static
   {
-    return $this->withRoleSlug('tenant_editor');
+    return $this->state(
+      fn () => ['role_id' => self::ALLOWED_ROLES['tenant_editor']]
+    );
   }
 
   /**
@@ -199,57 +206,8 @@ class UserFactory extends Factory
    */
   public function asTenantViewer(): static
   {
-    return $this->withRoleSlug('tenant_viewer');
-  }
-
-  /**
-   * Generic role setter with validation + pivot attach.
-   * Prefer using the wrapper methods above in tests for readability.
-   */
-  public function withRoleSlug(string $slug): static
-  {
-    if (!in_array($slug, self::ALLOWED_ROLE_SLUGS, true)) {
-      throw new InvalidArgumentException(
-        sprintf(
-          'Invalid role slug "%s". Allowed: %s',
-          $slug, implode(
-            ', ',
-            self::ALLOWED_ROLE_SLUGS
-          )
-        )
-      );
-    }
-
-    return $this
-      ->state(fn () => ['role' => $slug]) // set simple string column
-      ->afterCreating(function (User $user) use ($slug): void {
-        $this->attachRolePivotBySlug($user, $slug);
-      });
-  }
-
-  /**
-   * Attach role to user via pivot (role_user), validating existence in roles table.
-   */
-  private function attachRolePivotBySlug(User $user, string $slug): void
-  {
-    $roleId = DB::table('roles')
-      ->where('slug', $slug)
-      ->value('id');
-    if (!$roleId) {
-      throw new InvalidArgumentException(
-        sprintf(
-          'Role slug "%s" not found in roles table. Did you run BaseRolesSeeder?',
-          $slug
-        )
-      );
-    }
-
-    DB::table('role_user')->updateOrInsert(
-      [
-        'role_id' => (int) $roleId,
-        'user_id' => (int) $user->getKey()
-      ],
-      []
+    return $this->state(
+      fn () => ['role_id' => self::ALLOWED_ROLES['tenant_viewer']]
     );
   }
 }

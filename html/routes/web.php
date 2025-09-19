@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\InvitationController;
 use App\Http\Controllers\Admin\SeatUpgradeController;
 use App\Http\Controllers\Admin\TenantSeatsController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\UserRoleController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserStatusController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\LoginController;
@@ -106,9 +106,9 @@ Route::middleware(['auth:web', 'verified', 'tenant.manager'])
       ->name('impersonate.start');
 
     // User role management
-    Route::get('users/{user}/roles', [UserRoleController::class, 'edit'])
+    Route::get('users/{user}/roles', [RoleController::class, 'edit'])
       ->name('users.roles.edit');
-    Route::post('users/{user}/roles', [UserRoleController::class, 'update'])
+    Route::post('users/{user}/roles', [RoleController::class, 'update'])
       ->name('users.roles.update');
 
     // Invitations lifecycle
@@ -146,3 +146,6 @@ Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])
 // Playground route for testing (not part of the main app)
 Route::get('playground', [PlaygroundController::class, 'index'])
   ->name('playground.index');
+
+Route::get('email-preview/{route}', [InvitationController::class, 'previewEmail'])
+   ->name('email.preview');

@@ -7,7 +7,6 @@
 })();
 setTimeout(() => {
   document.querySelectorAll('.alert').forEach(el => {
-    debugger;
     if(el.classList.contains('non-dismissible')) return;
     el.remove();
   });

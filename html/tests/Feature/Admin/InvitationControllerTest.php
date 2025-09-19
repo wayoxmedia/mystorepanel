@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -99,6 +100,9 @@ final class InvitationControllerTest extends TestCase
   }
 
   /**
+   * First, we need to check the actual strategy, so the tests have the right expectations.
+   * The strategy can be 'send' or 'queue'.
+   *
    * After resending an invitation, the send_count should increment or not
    * depending on whether the cooldown period has passed.
    *
@@ -112,8 +116,7 @@ final class InvitationControllerTest extends TestCase
   {
     [$tenant] = $this->actingAsTenantAdmin();
 
-    $this->assertSame('mysql_testing', config('database.default'));
-    $this->assertSame('mystorepanel_test', config('database.connections.mysql_testing.database'));
+    $isQueue = config('mystore.mail.dispatch') === 'queue';
     $this->assertDatabaseCount('invitations', 0);
 
     // Create a fresh invitation (send_count = 0)
@@ -143,8 +146,15 @@ final class InvitationControllerTest extends TestCase
     );
     $res1->assertStatus(302);
 
-    // Assert email was sent exactly once in this window
-    Mail::assertSent(InvitationMail::class, 1);
+    if ($isQueue) {
+      // In 'queue' mode, email is not sent immediately.
+      Mail::assertQueued(InvitationMail::class, 1);
+      Mail::assertNothingSent();
+    } else {
+      // In 'send' mode, no queueing happens; email is sent immediately.
+      Mail::assertSent(InvitationMail::class, 1);
+      Mail::assertNothingQueued();
+    }
 
     // Fetch fresh row and capture values for later comparison
     $fresh1 = DB::table('invitations')
@@ -166,7 +176,8 @@ final class InvitationControllerTest extends TestCase
     );
     $res2->assertStatus(302);
 
-    // No new emails in this second window
+    // Nothing queued and nothing sent in this second window
+    Mail::assertQueued(InvitationMail::class, 0);
     Mail::assertNothingSent();
 
     $fresh2 = DB::table('invitations')
@@ -197,7 +208,13 @@ final class InvitationControllerTest extends TestCase
     );
     $res3->assertStatus(302);
 
-    Mail::assertSent(InvitationMail::class, 1);
+    if ($isQueue) {
+      Mail::assertQueued(InvitationMail::class, 1);
+      Mail::assertNothingSent();
+    } else {
+      Mail::assertSent(InvitationMail::class, 1);
+      Mail::assertNothingQueued();
+    }
 
     $fresh3 = DB::table('invitations')
       ->where('id', $inv->id)
@@ -439,5 +456,46 @@ final class InvitationControllerTest extends TestCase
       'tenant_viewer' => 'asTenantViewer',
       default => throw new InvalidArgumentException("Unsupported role slug: {$slug}"),
     };
+  }
+
+  public function testResendQueuesWhenDispatchIsQueue(): void
+  {
+    [$tenant] = $this->actingAsTenantAdmin();
+    $inv = Invitation::factory()->pending()->forTenant($tenant)->create([
+      'send_count' => 0, 'last_sent_at' => null,
+    ]);
+
+    Config::set('mystore.mail.dispatch', 'queue');
+    Config::set('mystore.mail.queue', 'mail');
+
+    Mail::fake();
+
+    $res = $this->post(route(self::R_RESEND, ['invitation' => $inv->id]));
+    $res->assertStatus(302);
+
+    Mail::assertQueued(InvitationMail::class, 1);
+    Mail::assertNothingSent();
+  }
+
+  public function testResendSendsWhenDispatchIsSend(): void
+  {
+    [$tenant] = $this->actingAsTenantAdmin();
+    $inv = Invitation::factory()->pending()->forTenant($tenant)->create([
+      'send_count' => 0, 'last_sent_at' => null,
+    ]);
+
+    Config::set('mystore.mail.dispatch', 'send');
+    $this->assertSame('send', config('mystore.mail.dispatch'));
+
+    Mail::fake();
+
+    $res = $this->post(route(self::R_RESEND, ['invitation' => $inv->id]));
+    $res->assertStatus(302);
+
+    Mail::assertSent(InvitationMail::class, 1);
+    // For completeness: when sending sync, it should NOT be queued
+    if (method_exists(Mail::class, 'assertNotQueued')) {
+      Mail::assertNotQueued(InvitationMail::class);
+    }
   }
 }

@@ -13,19 +13,17 @@ return new class extends Migration {
   public function up(): void
   {
     Schema::table('users', function (Blueprint $table) {
-      if (!Schema::hasColumn('users', 'tenant_id')) {
-        $table->foreignId('tenant_id')
-          ->nullable()
-          ->constrained()
-          ->nullOnDelete()
-          ->after('id');
-      }
+      $table->foreignId('tenant_id')
+        ->nullable()
+        ->constrained()
+        ->nullOnDelete()
+        ->after('id');
 
-      if (!Schema::hasColumn('users', 'role')) {
-        $table->string('role')
-          ->default('editor') // owner|admin|editor|viewer (customize as you need)
-          ->after('password');
-      }
+      $table->foreignId('role_id')
+        ->default(5)
+        ->constrained()
+        ->onDelete('restrict')
+        ->after('password');
 
       // Helpful index if you will query by tenant frequently
       $table->index('tenant_id');
@@ -37,9 +35,10 @@ return new class extends Migration {
     Schema::table('users', function (Blueprint $table) {
       if (Schema::hasColumn('users', 'tenant_id')) {
         $table->dropConstrainedForeignId('tenant_id');
+        $table->dropConstrainedForeignId('role_id');
       }
-      if (Schema::hasColumn('users', 'role')) {
-        $table->dropColumn('role');
+      if (Schema::hasColumn('users', 'role_id')) {
+        $table->dropColumn('role_id');
       }
     });
   }

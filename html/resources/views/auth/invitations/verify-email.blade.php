@@ -7,18 +7,10 @@
       <div class="card">
         <div class="card-header"><strong>Verify your email</strong></div>
         <div class="card-body">
-          @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-          @endif
-          @if($errors->any())
-            <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
-          @endif
-
           <p class="mb-3">
             We sent a verification link to <strong>{{ auth()->user()->email }}</strong>.
             Please check your inbox (and spam).
           </p>
-
           <form method="post" action="{{ route('verification.send') }}">
             @csrf
             <button class="btn btn-primary">Resend verification email</button>

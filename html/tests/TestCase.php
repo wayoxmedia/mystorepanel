@@ -47,7 +47,9 @@ abstract class TestCase extends BaseTestCase
 
     $databaseName = (string)($connectionConfig['database'] ?? '');
     if ($databaseName === '') {
-      throw new RuntimeException('No database name configured for the active testing connection.');
+      throw new RuntimeException(
+        'No database name configured for the active testing connection.'
+      );
     }
 
     // Allow either SQLite in-memory (not used now) OR a DB name that ends with `_test`
@@ -71,5 +73,15 @@ abstract class TestCase extends BaseTestCase
         $expectedConnection
       ));
     }
+
+    // 4) Optional guard: enforce that the testing database name matches expectation.
+    $this->assertSame(
+      'mysql_testing',
+      config('database.default')
+    );
+    $this->assertSame(
+      'mystorepanel_test',
+      config('database.connections.mysql_testing.database')
+    );
   }
 }

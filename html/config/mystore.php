@@ -4,6 +4,7 @@ return [
   'invitations' => [
     'expires_hours' => 168, // invitation token validity, 7 days
     'cooldown_minutes' => 5,
+    'auto_verify_on_accept' => env('INVITES_AUTO_VERIFY_ON_ACCEPT', false),
   ],
 
   'system_actor_id' => 0,
@@ -33,6 +34,9 @@ return [
     'headers' => [
       'X-System' => 'mystorepanel',
     ],
+
+    'dispatch' => env('MAIL_DISPATCH', 'queue'), // 'queue' | 'send' | 'auto'
+    'queue'    => env('MAIL_QUEUE', 'mail'),     // queue name when queueing
   ],
 
   // Seats configuration, currently, suspended users count as seats.

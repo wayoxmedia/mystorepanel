@@ -3,8 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Subscriber;
-use Database\Seeders\TestingSuiteRecordsSeeder;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -13,7 +12,7 @@ use Tests\TestCase;
  */
 class SubscriberServiceTest extends TestCase
 {
-  use DatabaseMigrations;
+  use RefreshDatabase;
 
   /**
    * Set up the test environment.
@@ -92,6 +91,7 @@ class SubscriberServiceTest extends TestCase
     }
 
     // Arrange: Create a subscriber using the factory.
+    /** @var Subscriber $subscriber */
     $subscriber = Subscriber::factory()->create([
       'address' => $data['iptAddress'],
       'address_type' => $data['selAddressType'],

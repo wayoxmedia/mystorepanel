@@ -7,10 +7,10 @@ use App\Mail\InvitationMail;
 use App\Models\AuditLog;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Support\MailDispatch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -123,8 +123,10 @@ class InvitationController extends Controller
     $invitation->expires_at = now()->addHours(config('mystore.invitations.expires_hours', 168)); // 7 días
     $invitation->save();
 
-    Mail::to($invitation->email)
-      ->send(new InvitationMail($invitation));
+    MailDispatch::deliver(
+      new InvitationMail($invitation),
+      $invitation->email
+    );
 
     // Update sending metrics
     $invitation->last_sent_at = now();
@@ -200,5 +202,16 @@ class InvitationController extends Controller
       return false;
     }
     return (int) $actor->tenant_id === (int) $inv->tenant_id;
+  }
+
+  public function previewEmail($route): View
+  {
+    $payload = [
+      'acceptUrl'  => '#',
+      'tenantName' => 'tenantName',
+      'roleName'   => 'roleName',
+      'expiresAt'  => '',
+    ];
+    return view($route, $payload);
   }
 }

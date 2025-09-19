@@ -38,9 +38,9 @@ class InvitationFactory extends Factory
       // default enum
       'status'     => 'pending',
 
-      // optional: assign with ->forRoleSlug(...) in tests
+      // Assign with ->forRoleSlug(...) in tests
       // or set directly role_id if you prefer
-      'role_id'    => null,
+      'role_id'    => 5, // tenant_viewer
 
       // typical 7 days expiration, can be changed with ->expiringAt(...) in tests
       'expires_at' => now()->addDays(7),
@@ -110,10 +110,15 @@ class InvitationFactory extends Factory
   public function forRoleSlug(string $slug): static
   {
     return $this->afterMaking(function (Invitation $inv) use ($slug): void {
-      $roleId = DB::table('roles')->where('slug', $slug)->value('id');
+      $roleId = DB::table('roles')
+        ->where('slug', $slug)
+        ->value('id');
       if (!$roleId) {
         throw new InvalidArgumentException(
-          sprintf('Role slug "%s" not found. Did you run BaseRolesSeeder?', $slug)
+          sprintf(
+            'Role slug "%s" not found. Did you run BaseRolesSeeder?',
+            $slug
+          )
         );
       }
       $inv->role_id = (int) $roleId;
@@ -127,7 +132,10 @@ class InvitationFactory extends Factory
   {
     if (!in_array($status, self::ALLOWED_STATUSES, true)) {
       throw new InvalidArgumentException(
-        sprintf('Invalid status "%s". Allowed: %s', $status, implode(', ', self::ALLOWED_STATUSES))
+        sprintf(
+          'Invalid status "%s". Allowed: %s',
+          $status, implode(', ', self::ALLOWED_STATUSES)
+        )
       );
     }
     return $this->state(fn () => ['status' => $status]);

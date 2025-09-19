@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateUserStatusRequest;
 use App\Models\AuditLog;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 
@@ -25,14 +26,16 @@ class UserStatusController extends Controller
    * Users cannot change their own status to prevent accidental lockout.
    * Changes are logged in the audit log.
    *
-   * @param UpdateUserStatusRequest $request The validated request containing the new status and reason.
-   * @param User                    $user    The user whose status is to be updated.
+   * @param  UpdateUserStatusRequest  $request  The validated request containing the new status and reason.
+   * @param  User  $user  The user whose status is to be updated.
    * @return RedirectResponse Redirects back with success or error message.
+   * @throws AuthorizationException
    */
   public function update(UpdateUserStatusRequest $request, User $user): RedirectResponse
   {
     /** @var User $actor */
     $actor = auth()->user();
+    $this->authorize('updateStatus', $user);
 
     if (! $this->canManageTarget($actor, $user)) {
       abort(403);
