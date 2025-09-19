@@ -36,7 +36,7 @@
                 <h6 class="text-uppercase text-muted">{{ $scope }} roles</h6>
                 @foreach($roles as $r)
                   @php
-                    $checked = in_array($r->slug, $currentSlug, true);
+                    $checked = $r->slug === $currentSlug;
                     $allowed = in_array($r->slug, $allowedSlugs, true);
                   @endphp
                   <div class="form-check mb-2">
@@ -45,7 +45,7 @@
                            name="role"
                            id="role_{{ $r->slug }}"
                            value="{{ $r->slug }}"
-                      {{ old('role', $currentSlug)[0] === $r->slug ? 'checked' : '' }}
+                      {{ old('role', $currentSlug) === $r->slug ? 'checked' : '' }}
                       {{ $allowed ? '' : 'disabled' }}>
                     <label class="form-check-label" for="role_{{ $r->slug }}">
                       {{ $r->name }} <span class="text-muted">({{ $r->slug }})</span>

@@ -19,8 +19,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -44,7 +44,7 @@ class UserController extends Controller
   {
     $this->authorizeViewAny();
 
-    $query = User::query()->with(['tenant', 'roles']);
+    $query = User::query()->with(['tenant', 'role']);
 
     // Scope by tenant if not platform super admin
     /** @var User $user */
@@ -64,7 +64,7 @@ class UserController extends Controller
 
     if ($request->filled('role')) {
       $query->whereHas(
-        'roles',
+        'role',
         fn ($qr) => $qr->where('slug', $request->string('role')));
     }
 
@@ -307,9 +307,10 @@ class UserController extends Controller
         $user->name      = (string) $request->string('name');
         $user->email     = (string) $request->string('email');
         $user->tenant_id = null;
-        $user->role      = (string) $role->id;
+        $user->role_id   = $role->id;
         $user->status    = 'active';
-        $user->password  = bcrypt((string) $request->string('password'));
+        $user->password  = (string) $request->string('password');
+        $user->password = Hash::make((string) $request->string('password'));
         $user->save();
 
         AuditLog::query()->create([
@@ -350,11 +351,10 @@ class UserController extends Controller
           $user->name      = (string) $request->string('name');
           $user->email     = $email;
           $user->tenant_id = $tenantId;
+          $user->role_id   = $role->id;
           $user->status    = 'active';
-          $user->password  = bcrypt((string) $request->string('password'));
+          $user->password  = Hash::make((string) $request->string('password'));
           $user->save();
-
-          $user->roles()->sync([$role->id]);
 
           AuditLog::query()->create([
             'actor_id'     => $actor->id,
@@ -427,10 +427,7 @@ class UserController extends Controller
           ->where('slug', 'tenant_owner')
           ->value('id');
         if ($ownerRoleId) {
-          $isTargetOwner = DB::table('role_user')
-            ->where('user_id', $user->id)
-            ->where('role_id', $ownerRoleId)
-            ->exists();
+          $isTargetOwner = $ownerRoleId === $user->role_id;
 
           if ($isTargetOwner) {
             // Are there other owners in the same tenant? Including the target?

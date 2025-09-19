@@ -65,11 +65,11 @@
 @endif
 
             <td>
-@forelse($u->roles as $r)
-              <span class="badge text-bg-light border me-1 mb-1">{{ $r->name }}</span>
-@empty
+@if (!!$u->role)
+              <span class="badge text-bg-light border me-1 mb-1">{{ $u->role->name ?? '' }}</span>
+@else
               <span class="text-muted small">No roles</span>
-@endforelse
+@endif
             </td>
             <td>
 @php

@@ -14,7 +14,7 @@
           @if($user->tenant)
             <div class="mb-2"><strong>Tenant:</strong> {{ $user->tenant->name }}</div>
           @endif
-          <div class="text-muted small">Role(s): {{ $user->roles->pluck('name')->implode(', ') }}</div>
+          <div class="text-muted small">Role: {{ $user->role->name }}</div>
         </div>
       </div>
 

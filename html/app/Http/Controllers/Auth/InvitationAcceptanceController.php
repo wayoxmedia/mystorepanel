@@ -151,14 +151,10 @@ class InvitationAcceptanceController extends Controller
         $user->email     = $email;
         $user->tenant_id = $tenant->id;
         $user->status    = 'active';
+        $user->role_id   = $freshInv->role_id;
         $user->password  = Hash::make((string) $request->input('password'));
         $user->email_verified_at = $autoVerify ? now() : null;
         $user->save();
-
-        // Attach role (if any)
-        if ($freshInv->role_id) {
-          $user->roles()->sync([$freshInv->role_id]);
-        }
 
         // Close invitation
         $freshInv->update([
@@ -224,12 +220,9 @@ class InvitationAcceptanceController extends Controller
     $user->email     = $inv->email;
     $user->tenant_id = null; // staff de plataforma
     $user->status    = 'active';
+    $user->role_id   = $inv->role_id;
     $user->password  = Hash::make((string) $request->input('password'));
     $user->save();
-
-    if ($inv->role_id) {
-      $user->roles()->sync([$inv->role_id]);
-    }
 
     $inv->update(['status' => 'accepted', 'expires_at' => now()]);
 

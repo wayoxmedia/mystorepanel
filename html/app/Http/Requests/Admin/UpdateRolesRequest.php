@@ -13,7 +13,7 @@ use Illuminate\Validation\Rule;
  * Ensures that only valid tenant roles are assigned,
  * with input normalization and custom error messages.
  */
-class UpdateUserRolesRequest extends FormRequest
+class UpdateRolesRequest extends FormRequest
 {
   /**
    * Authorization is handled in the controller via $this->authorize(...).

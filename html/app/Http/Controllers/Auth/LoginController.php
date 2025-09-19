@@ -51,7 +51,9 @@ class LoginController extends Controller
 
     // Fetch user to enforce status/tenant checks
     /** @var User|null $user */
-    $user = User::query()->where('email', $credentials['email'])->first();
+    $user = User::query()
+      ->where('email', $credentials['email'])
+      ->first();
 
     // Uniform error message (no filtración de estado ni existencia)
     $fail = function () use ($request) {
@@ -60,18 +62,25 @@ class LoginController extends Controller
         ->withErrors(['email' => 'Invalid credentials or account not allowed.']);
     };
 
-    if (! $user) {
+    if (!$user) {
       return $fail();
     }
 
     // Status checks (block suspended / locked / pending_invite)
-    if (in_array($user->status, ['suspended', 'locked', 'pending_invite'], true)) {
+    $isBlocked = in_array(
+      $user->status,
+      ['suspended', 'locked', 'pending_invite'],
+      true
+    );
+    if ($isBlocked) {
       return $fail();
     }
 
-    // Enforce email verification if your users table has it
+    // Enforce email verification
     /*if (is_null($user->email_verified_at)) {
-      return back()->withErrors(['email' => 'Please verify your email before logging in.']);
+      return back()->withErrors(
+        ['email' => 'Please verify your email before logging in.']
+      );
     }*/
 
     // Verify password first to avoid hitting throttling unnecessarily
@@ -80,7 +89,14 @@ class LoginController extends Controller
     }
 
     // Attempt session login
-    if (! Auth::attempt(['email' => $user->email, 'password' => $credentials['password']], $remember)) {
+    $isOk = Auth::attempt(
+      [
+        'email' => $user->email,
+        'password' => $credentials['password']
+      ],
+      $remember
+    );
+    if (!$isOk) {
       return $fail();
     }
 
@@ -96,6 +112,7 @@ class LoginController extends Controller
     ]);
 
     // Redirect by role
+    /** @var User $u */
     $u = auth()->user();
     if ($u->isPlatformSuperAdmin() || $u->hasAnyRole(['tenant_owner','tenant_admin'])) {
       return redirect()->intended(route('admin.users.index'));

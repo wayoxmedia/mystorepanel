@@ -20,6 +20,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed $invited_by
  * @property mixed $last_sent_at
  * @property mixed $send_count
+ * @property Role|null $role
+ * @property Tenant $tenant
+ * @property User $inviter
  * @method static InvitationFactory factory($count = null, $state = [])
  */
 class Invitation extends Model

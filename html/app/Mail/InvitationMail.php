@@ -20,7 +20,10 @@ class InvitationMail extends Mailable
   public function __construct(Invitation $invitation)
   {
     $this->invitation = $invitation;
-    $this->acceptUrl = route('invitations.accept', ['token' => $invitation->token]);
+    $this->acceptUrl = route(
+      'invitations.accept',
+      ['token' => $invitation->token]
+    );
   }
 
   /**
@@ -28,9 +31,19 @@ class InvitationMail extends Mailable
    */
   public function build(): self
   {
-    $tenantName = optional($this->invitation->tenant)->name ?? config('app.name');
-    $roleName   = optional($this->invitation->role)->name;
-    $subject    = "You're invited to {$tenantName} on My Store App";
+    // Build vars depending on tenant.
+    $roleName   = $this->invitation->role->name;
+
+    if ($this->invitation->tenant) {
+      // Tenant exists.
+      $tenantName = $this->invitation->tenant->name;
+      $subject = "You're invited to {$tenantName} on My Store App";
+    } else {
+      // Tenant is null? then invitation is to Platform Super Admin.
+      $tenantName = 'My Store Panel';
+      $subject = "Your invitation to join as {$roleName} on My Store Panel";
+    }
+
 
     return $this->subject($subject)
       ->view('emails.invitations.invite')

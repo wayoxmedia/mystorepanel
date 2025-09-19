@@ -203,4 +203,15 @@ class InvitationController extends Controller
     }
     return (int) $actor->tenant_id === (int) $inv->tenant_id;
   }
+
+  public function previewEmail($route): View
+  {
+    $payload = [
+      'acceptUrl'  => '#',
+      'tenantName' => 'tenantName',
+      'roleName'   => 'roleName',
+      'expiresAt'  => '',
+    ];
+    return view($route, $payload);
+  }
 }
