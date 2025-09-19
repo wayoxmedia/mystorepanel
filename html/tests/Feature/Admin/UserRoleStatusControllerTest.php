@@ -28,9 +28,24 @@ class UserRoleStatusControllerTest extends TestCase
     $tenant = Tenant::factory()->active()->create();
     $this->withTenantSession($tenant);
 
-    $actor = User::factory()->verified()->active()->forTenant($tenant)->{$actorRole}()->create();
-    $viewer = User::factory()->verified()->active()->forTenant($tenant)->asTenantViewer()->create();
-    $owner  = User::factory()->verified()->active()->forTenant($tenant)->asTenantOwner()->create();
+    $actor = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->{$actorRole}()
+      ->create();
+    $viewer = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->asTenantViewer()
+      ->create();
+    $owner  = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->asTenantOwner()
+      ->create();
 
     $this->actingAs($actor, 'web');
 
@@ -45,8 +60,16 @@ class UserRoleStatusControllerTest extends TestCase
     );
 
     // Target = owner
-    $res2 = $this->post(route(self::R_UPDATE_ROLE, ['user' => $owner->id]), ['role' => 'tenant_admin']);
-    $this->assertContains($res2->getStatusCode(), $shouldAllowTargetOwner ? [200, 302] : [403, 302]);
+    $res2 = $this->post(
+      route(
+        self::R_UPDATE_ROLE,
+        ['user' => $owner->id]),
+      ['role' => 'tenant_admin']
+    );
+    $this->assertContains(
+      $res2->getStatusCode(),
+      $shouldAllowTargetOwner ? [200, 302] : [403, 302]
+    );
   }
 
   public static function rolesMatrix(): array
@@ -66,12 +89,27 @@ class UserRoleStatusControllerTest extends TestCase
     $t2 = Tenant::factory()->active()->create();
     $this->withTenantSession($t1);
 
-    $adminT1 = User::factory()->verified()->active()->forTenant($t1)->asTenantAdmin()->create();
-    $userT2  = User::factory()->verified()->active()->forTenant($t2)->asTenantViewer()->create();
+    $adminT1 = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($t1)
+      ->asTenantAdmin()
+      ->create();
+    $userT2  = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($t2)
+      ->asTenantViewer()
+      ->create();
 
     $this->actingAs($adminT1, 'web');
 
-    $res = $this->post(route(self::R_UPDATE_ROLE, ['user' => $userT2->id]), ['role' => 'tenant_editor']);
+    $res = $this->post(
+      route(
+        self::R_UPDATE_ROLE,
+        ['user' => $userT2->id]),
+      ['role' => 'tenant_editor']
+    );
     $this->assertContains($res->getStatusCode(), [403, 302]);
   }
 
@@ -80,16 +118,36 @@ class UserRoleStatusControllerTest extends TestCase
     $tenant = Tenant::factory()->active()->create();
     $this->withTenantSession($tenant);
 
-    $admin  = User::factory()->verified()->active()->forTenant($tenant)->asTenantAdmin()->create();
-    $viewer = User::factory()->verified()->active()->forTenant($tenant)->asTenantViewer()->create();
+    $admin  = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->asTenantAdmin()
+      ->create();
+    $viewer = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->asTenantViewer()
+      ->create();
 
     $this->actingAs($admin, 'web');
 
-    $res = $this->post(route(self::R_UPDATE_STATUS, ['user' => $viewer->id]), ['status' => 'suspended']);
+    $res = $this->post(
+      route(
+        self::R_UPDATE_STATUS,
+        ['user' => $viewer->id]),
+      ['status' => 'suspended']
+    );
     $this->assertContains($res->getStatusCode(), [200, 302]);
 
     // No self-status changes
-    $res2 = $this->post(route(self::R_UPDATE_STATUS, ['user' => $admin->id]), ['status' => 'suspended']);
+    $res2 = $this->post(
+      route(
+        self::R_UPDATE_STATUS,
+        ['user' => $admin->id]),
+      ['status' => 'suspended']
+    );
     $this->assertContains($res2->getStatusCode(), [403, 302]);
   }
 
@@ -98,13 +156,33 @@ class UserRoleStatusControllerTest extends TestCase
     $tenant = Tenant::factory()->active()->create();
     $this->withTenantSession($tenant);
 
-    $owner = User::factory()->verified()->active()->forTenant($tenant)->asTenantOwner()->create();
-    $root  = User::factory()->verified()->active()->forTenant($tenant)->asPlatformSuperAdmin()->create();
+    $owner = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->asTenantOwner()
+      ->create();
+    $root  = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->asPlatformSuperAdmin()
+      ->create();
 
     $this->actingAs($owner, 'web');
 
-    $res1 = $this->post(route(self::R_UPDATE_ROLE, ['user' => $root->id]), ['role' => 'tenant_admin']);
-    $res2 = $this->post(route(self::R_UPDATE_STATUS, ['user' => $root->id]), ['status' => 'suspended']);
+    $res1 = $this->post(
+      route(
+        self::R_UPDATE_ROLE,
+        ['user' => $root->id]),
+      ['role' => 'tenant_admin']
+    );
+    $res2 = $this->post(
+      route(
+        self::R_UPDATE_STATUS,
+        ['user' => $root->id]),
+      ['status' => 'suspended']
+    );
 
     $this->assertContains($res1->getStatusCode(), [403, 302]);
     $this->assertContains($res2->getStatusCode(), [403, 302]);

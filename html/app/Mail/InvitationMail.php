@@ -31,8 +31,8 @@ class InvitationMail extends Mailable
    */
   public function build(): self
   {
-    // Build vars depending on tenant.
-    $roleName   = $this->invitation->role->name;
+    // Build vars depending on tenant. TODO Why fallback to 'No Role'? Check.
+    $roleName   = $this->invitation->role?->name ?? 'No Role';
 
     if ($this->invitation->tenant) {
       // Tenant exists.

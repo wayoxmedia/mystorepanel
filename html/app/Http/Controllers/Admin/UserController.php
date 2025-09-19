@@ -430,7 +430,11 @@ class UserController extends Controller
           $isTargetOwner = $ownerRoleId === $user->role_id;
 
           if ($isTargetOwner) {
-            // Are there other owners in the same tenant? Including the target?
+            /**
+             * TODO role_user table does not exist, this logic needs to be changed.
+             *   Trigger by deleting a user with role tenant_owner and fix.
+             *   Are there other owners in the same tenant? Including the target?
+             */
             $otherOwners = DB::table('role_user as ru')
               ->join('users as u', 'u.id', '=', 'ru.user_id')
               ->where('ru.role_id', $ownerRoleId)

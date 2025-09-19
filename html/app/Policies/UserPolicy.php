@@ -118,10 +118,7 @@ class UserPolicy
   private function hasRole(User $user, string $slug): bool
   {
     $rid = $this->roleId($slug);
-    return DB::table('role_user')
-      ->where('user_id', $user->id)
-      ->where('role_id', $rid)
-      ->exists();
+    return $user->role_id === $rid;
   }
 
   /**
@@ -133,10 +130,7 @@ class UserPolicy
   private function hasAnyRole(User $user, array $slugs): bool
   {
     $ids = array_map(fn (string $s) => $this->roleId($s), $slugs);
-    return DB::table('role_user')
-      ->where('user_id', $user->id)
-      ->whereIn('role_id', $ids)
-      ->exists();
+    return in_array($user->role_id, $ids);
   }
 
   /**

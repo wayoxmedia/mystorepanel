@@ -47,7 +47,9 @@ abstract class TestCase extends BaseTestCase
 
     $databaseName = (string)($connectionConfig['database'] ?? '');
     if ($databaseName === '') {
-      throw new RuntimeException('No database name configured for the active testing connection.');
+      throw new RuntimeException(
+        'No database name configured for the active testing connection.'
+      );
     }
 
     // Allow either SQLite in-memory (not used now) OR a DB name that ends with `_test`

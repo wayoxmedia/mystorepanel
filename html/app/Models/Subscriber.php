@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * Class Subscriber
@@ -12,6 +13,15 @@ use Illuminate\Database\Eloquent\Model;
  * @method static create(array $array)
  * @method static insert(array[] $array)
  * @method static find(mixed $id)
+ * @property int $id
+ * @property string $address
+ * @property string $address_type
+ * @property string|null $user_ip
+ * @property array|null $geo_location
+ * @property bool $active
+ * @property int|null $store_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @mixin Builder
  */
 class Subscriber extends Model

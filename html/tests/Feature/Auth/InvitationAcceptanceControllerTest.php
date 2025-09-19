@@ -23,8 +23,9 @@ use Tests\TestCase;
  * - Respecting tenant seat limits during acceptance.
  * - Handling expired tokens correctly.
  *
- * Note: This test assumes the existence of factories for Tenant, Invitation, and User models,
- * as well as appropriate routes and middleware in the application.
+ * Note: This test assumes the existence of factories for Tenant,
+ * Invitation, and User models, as well as appropriate routes
+ * and middleware in the application.
  */
 final class InvitationAcceptanceControllerTest extends TestCase
 {
@@ -43,7 +44,12 @@ final class InvitationAcceptanceControllerTest extends TestCase
     $tenant = Tenant::factory()->active()->create();
     $inv    = Invitation::factory()->pending()->forTenant($tenant)->create();
 
-    $res = $this->get(route(self::R_ACCEPT_SHOW, ['token' => $inv->token]));
+    $res = $this->get(
+      route(
+        self::R_ACCEPT_SHOW,
+        ['token' => $inv->token]
+      )
+    );
     $res->assertStatus(200);
   }
 
@@ -57,9 +63,11 @@ final class InvitationAcceptanceControllerTest extends TestCase
     $inv    = Invitation::factory()->pending()->forTenant($tenant)->create();
 
     // Intentionally omit required fields to trigger validation.
-    $res = $this->post(route(self::R_ACCEPT_STORE), [
-      'token' => $inv->token,
-    ]);
+    $res = $this->post(
+      route(
+        self::R_ACCEPT_STORE),
+      ['token' => $inv->token]
+    );
 
     $res->assertStatus(302);
   }
@@ -70,7 +78,6 @@ final class InvitationAcceptanceControllerTest extends TestCase
    * @param  integer $seatLimit
    * @param  integer $activeUsers
    * @param  boolean $shouldAccept
-   * @param  integer $expectedHttp
    * @return void
    */
   #[DataProvider('seatLimitCases')]
@@ -78,35 +85,68 @@ final class InvitationAcceptanceControllerTest extends TestCase
     int $seatLimit,
     int $activeUsers,
     bool $shouldAccept,
-    int $expectedHttp
   ): void {
     // Arrange: tenant with limit and pre-filled active users
-    $tenant = Tenant::factory()->active()->withSeatLimit($seatLimit)->create();
-    User::factory()->active()->verified()->forTenant($tenant)->count($activeUsers)->create();
+    $tenant = Tenant::factory()
+      ->active()
+      ->withSeatLimit($seatLimit)
+      ->create();
+    User::factory()
+      ->active()
+      ->verified()
+      ->forTenant($tenant)
+      ->count($activeUsers)
+      ->create();
 
     $email = 'invitee.' . Str::random(5) . '@example.test';
-    $inv = Invitation::factory()->pending()->forTenant($tenant)->create(['email' => $email]);
+    $inv = Invitation::factory()
+      ->pending()
+      ->forTenant($tenant)
+      ->create(
+        ['email' => $email, 'role_id' => 5]
+      ); // role_id is arbitrary here
 
     // Act
-    $res = $this->post(route(self::R_ACCEPT_STORE), $this->buildAcceptPayload($inv));
+    $res = $this->post(
+      route(self::R_ACCEPT_STORE),
+      $this->buildAcceptPayload($inv)
+    );
 
-    // Assert HTTP (web usually redirects; adjust if your endpoint is JSON)
-    $res->assertStatus($expectedHttp);
+    // Assert HTTP (web usually redirects; so 302)
+    $res->assertStatus(302);
 
     if ($shouldAccept) {
-      $this->assertDatabaseHas('invitations', ['id' => $inv->id, 'status' => 'accepted']);
+      $this->assertDatabaseHas(
+        'invitations',
+        ['id' => $inv->id, 'status' => 'accepted']
+      );
       $this->assertTrue(
-        DB::table('users')->where('tenant_id', $tenant->id)->where('email', $email)->exists(),
+        DB::table('users')
+          ->where('tenant_id', $tenant->id)
+          ->where('email', $email)
+          ->exists(),
         'User should exist after acceptance when a seat is available.'
       );
-      $this->assertSame($seatLimit, $this->activeSeatCount($tenant->id));
+      $this->assertSame(
+        $seatLimit,
+        $this->activeSeatCount($tenant->id)
+      );
     } else {
-      $this->assertDatabaseHas('invitations', ['id' => $inv->id, 'status' => 'pending']);
+      $this->assertDatabaseHas(
+        'invitations',
+        ['id' => $inv->id, 'status' => 'pending']
+      );
       $this->assertFalse(
-        DB::table('users')->where('tenant_id', $tenant->id)->where('email', $email)->exists(),
+        DB::table('users')
+          ->where('tenant_id', $tenant->id)
+          ->where('email', $email)
+          ->exists(),
         'No user should be created when seat limit is reached.'
       );
-      $this->assertSame($activeUsers, $this->activeSeatCount($tenant->id));
+      $this->assertSame(
+        $activeUsers,
+        $this->activeSeatCount($tenant->id)
+      );
     }
   }
 
@@ -137,8 +177,8 @@ final class InvitationAcceptanceControllerTest extends TestCase
   public static function seatLimitCases(): array
   {
     return [
-      'full capacity blocks acceptance'       => [2, 2, false, 302],
-      'one seat available allows acceptance'  => [3, 2, true,  302],
+      'full capacity blocks acceptance'       => [2, 2, false],
+      'one seat available allows acceptance'  => [3, 2, true],
     ];
   }
 

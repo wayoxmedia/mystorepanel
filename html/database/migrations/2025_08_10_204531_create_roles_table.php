@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
   /**
-   * Create roles and role_user pivot, and upsert base roles.
+   * Create roles table, and upsert base roles.
    */
   public function up(): void
   {

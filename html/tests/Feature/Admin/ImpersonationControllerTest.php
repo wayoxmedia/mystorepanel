@@ -24,8 +24,18 @@ class ImpersonationControllerTest extends TestCase
     $tenant = Tenant::factory()->active()->create();
     $this->withTenantSession($tenant);
 
-    $admin  = User::factory()->verified()->active()->forTenant($tenant)->asTenantAdmin()->create();
-    $viewer = User::factory()->verified()->active()->forTenant($tenant)->asTenantViewer()->create();
+    $admin  = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->asTenantAdmin()
+      ->create();
+    $viewer = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($tenant)
+      ->asTenantViewer()
+      ->create();
 
     $this->actingAs($admin, 'web');
 
@@ -37,7 +47,10 @@ class ImpersonationControllerTest extends TestCase
   }
 
   #[DataProvider('forbiddenMatrix')]
-  public function testImpersonationForbiddenCases(callable $actorFactory, callable $targetFactory): void
+  public function testImpersonationForbiddenCases(
+    callable $actorFactory,
+    callable $targetFactory
+  ): void
   {
     $tenant = Tenant::factory()->active()->create();
     $this->withTenantSession($tenant);
@@ -55,24 +68,71 @@ class ImpersonationControllerTest extends TestCase
   {
     return [
       'editor cannot impersonate viewer' => [
-        fn ($t) => User::factory()->verified()->active()->forTenant($t)->asTenantEditor()->create(),
-        fn ($t) => User::factory()->verified()->active()->forTenant($t)->asTenantViewer()->create(),
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant($t)
+          ->asTenantEditor()
+          ->create(),
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant($t)
+          ->asTenantViewer()
+          ->create(),
       ],
       'admin cannot impersonate owner' => [
-        fn ($t) => User::factory()->verified()->active()->forTenant($t)->asTenantAdmin()->create(),
-        fn ($t) => User::factory()->verified()->active()->forTenant($t)->asTenantOwner()->create(),
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant($t)
+          ->asTenantAdmin()
+          ->create(),
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant($t)
+          ->asTenantOwner()
+          ->create(),
       ],
       'cannot impersonate platform admin' => [
-        fn ($t) => User::factory()->verified()->active()->forTenant($t)->asTenantOwner()->create(),
-        fn ($t) => User::factory()->verified()->active()->forTenant($t)->asPlatformSuperAdmin()->create(),
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant($t)
+          ->asTenantOwner()
+          ->create(),
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant($t)
+          ->asPlatformSuperAdmin()
+          ->create(),
       ],
       'cannot impersonate self' => [
-        fn ($t) => User::factory()->verified()->active()->forTenant($t)->asTenantAdmin()->create(),
-        fn ($t) => User::query()->latest('id')->first(), // last created = same user
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant($t)
+          ->asTenantAdmin()
+          ->create(),
+        fn ($t) => User::query()
+          ->latest('id')
+          ->first(), // last created = same user
       ],
       'cross-tenant blocked (non-platform)' => [
-        fn ($t) => User::factory()->verified()->active()->forTenant($t)->asTenantAdmin()->create(),
-        fn ($t) => User::factory()->verified()->active()->forTenant(Tenant::factory()->active()->create())->asTenantViewer()->create(),
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant($t)
+          ->asTenantAdmin()
+          ->create(),
+        fn ($t) => User::factory()
+          ->verified()
+          ->active()
+          ->forTenant(Tenant::factory()->active()->create())
+          ->asTenantViewer()
+          ->create(),
       ],
     ];
   }
@@ -83,8 +143,18 @@ class ImpersonationControllerTest extends TestCase
     $t2 = Tenant::factory()->active()->create();
     $this->withTenantSession($t1);
 
-    $root  = User::factory()->verified()->active()->forTenant($t1)->asPlatformSuperAdmin()->create();
-    $user2 = User::factory()->verified()->active()->forTenant($t2)->asTenantViewer()->create();
+    $root  = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($t1)
+      ->asPlatformSuperAdmin()
+      ->create();
+    $user2 = User::factory()
+      ->verified()
+      ->active()
+      ->forTenant($t2)
+      ->asTenantViewer()
+      ->create();
 
     $this->actingAs($root, 'web');
 

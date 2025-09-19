@@ -28,7 +28,10 @@ class SubscriberServiceTest extends TestCase
     $result = $service->store($data);
 
     // Assert: Verify the database and result
-    $this->assertNotNull($result->id, 'Subscriber was not saved to the database.');
+    $this->assertNotNull(
+      $result->id,
+      'Subscriber was not saved to the database.'
+    );
     $this->assertDatabaseHas('subscribers', [
       'address' => $data['iptAddress'],
       'address_type' => $data['selAddressType'],
@@ -55,13 +58,15 @@ class SubscriberServiceTest extends TestCase
       'Valid Email Subscriber' => [
         'data' => [
           'iptAddress' => 'test@example.com',
-          'selAddressType' => 'e'
+          'selAddressType' => 'e',
+          'store_id' => 1
         ]
       ],
       'Valid Phone Subscriber' => [
         'data' => [
           'iptAddress' => '+1234567890',
-          'selAddressType' => 'p'
+          'selAddressType' => 'p',
+          'store_id' => 1
         ]
       ]
     ];
