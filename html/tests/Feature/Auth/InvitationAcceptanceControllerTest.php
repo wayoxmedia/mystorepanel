@@ -188,15 +188,25 @@ final class InvitationAcceptanceControllerTest extends TestCase
    */
   public function testAcceptFailsForExpiredToken(): void
   {
-    $tenant = Tenant::factory()->active()->withSeatLimit(2)->create();
-    $inv = Invitation::factory()->expired()->forTenant($tenant)->create([
-      'email' => 'expired@example.test',
-    ]);
+    $tenant = Tenant::factory()
+      ->active()
+      ->withSeatLimit(2)
+      ->create();
+    $inv = Invitation::factory()
+      ->expired()->forTenant($tenant)
+      ->create(['email' => 'expired@example.test']);
 
-    $res = $this->post(route(self::R_ACCEPT_STORE), $this->buildAcceptPayload($inv));
+    $res = $this->post(
+      route(
+        self::R_ACCEPT_STORE),
+      $this->buildAcceptPayload($inv)
+    );
     $res->assertStatus(302);
 
-    $this->assertDatabaseHas('invitations', ['id' => $inv->id, 'status' => 'expired']);
+    $this->assertDatabaseHas(
+      'invitations',
+      ['id' => $inv->id, 'status' => 'expired']
+    );
     $this->assertFalse(
       DB::table('users')
         ->where('tenant_id', $tenant->id)
@@ -243,11 +253,18 @@ final class InvitationAcceptanceControllerTest extends TestCase
       ->create(['email' => $email]);
 
     // Act
-    $res = $this->post(route(self::R_ACCEPT_STORE), $this->buildAcceptPayload($inv));
+    $res = $this->post(
+      route(
+        self::R_ACCEPT_STORE),
+      $this->buildAcceptPayload($inv)
+    );
     $res->assertStatus(302); // adjust if your endpoint is JSON
 
     // Assert invitation state
-    $this->assertDatabaseHas('invitations', ['id' => $inv->id, 'status' => 'accepted']);
+    $this->assertDatabaseHas(
+      'invitations',
+      ['id' => $inv->id, 'status' => 'accepted']
+    );
 
     // Assert user exists and verification matches the flag
     $user = DB::table('users')
@@ -255,12 +272,21 @@ final class InvitationAcceptanceControllerTest extends TestCase
       ->where('email', $email)
       ->first();
 
-    $this->assertNotNull($user, 'User should be created upon acceptance with available seat.');
+    $this->assertNotNull(
+      $user,
+      'User should be created upon acceptance with available seat.'
+    );
 
     if ($flagEnabled) {
-      $this->assertNotNull($user->email_verified_at, 'User should be auto-verified when flag is ON.');
+      $this->assertNotNull(
+        $user->email_verified_at,
+        'User should be auto-verified when flag is ON.'
+      );
     } else {
-      $this->assertNull($user->email_verified_at, 'User should NOT be auto-verified when flag is OFF.');
+      $this->assertNull(
+        $user->email_verified_at,
+        'User should NOT be auto-verified when flag is OFF.'
+      );
     }
   }
 
@@ -316,20 +342,31 @@ final class InvitationAcceptanceControllerTest extends TestCase
 
     // Existing user takes the email in that tenant
     $email = 'dup.' . Str::random(5) . '@example.test';
-    User::factory()->active()->unverified()->forTenant($tenant)->create([
-      'email' => $email,
-    ]);
+    User::factory()
+      ->active()
+      ->unverified()
+      ->forTenant($tenant)
+      ->create(['email' => $email]);
 
     // Invitation uses the same email
-    $inv = Invitation::factory()->pending()->forTenant($tenant)->create([
-      'email' => $email,
-    ]);
+    $inv = Invitation::factory()
+      ->pending()
+      ->forTenant($tenant)
+      ->create(['email' => $email]
+      );
 
-    $res = $this->post(route(self::R_ACCEPT_STORE), $this->buildAcceptPayload($inv));
+    $res = $this->post(
+      route(
+        self::R_ACCEPT_STORE),
+      $this->buildAcceptPayload($inv)
+    );
     $res->assertStatus(302); // If API, use 422/409 as appropriate
 
     // Invitation should change to accepted to prevent reuse
-    $this->assertDatabaseHas('invitations', ['id' => $inv->id, 'status' => 'accepted']);
+    $this->assertDatabaseHas(
+      'invitations',
+      ['id' => $inv->id, 'status' => 'accepted']
+    );
 
     // No duplicate user should be created
     $count = DB::table('users')
@@ -337,6 +374,9 @@ final class InvitationAcceptanceControllerTest extends TestCase
       ->where('email', $email)
       ->count();
 
-    $this->assertSame(1, $count, 'There should still be only one user with that email in the tenant.');
+    $this->assertSame(
+      1,
+      $count,
+      'There should still be only one user with that email in the tenant.');
   }
 }
