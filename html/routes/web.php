@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\PlaygroundController;
+use App\Http\Controllers\WellKnown\ListUnsubscribeController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -149,3 +150,10 @@ Route::get('playground', [PlaygroundController::class, 'index'])
 
 Route::get('email-preview/{route}', [InvitationController::class, 'previewEmail'])
    ->name('email.preview');
+
+Route::get('/.well-known/list-unsubscribe', ListUnsubscribeController::class)
+  ->middleware('signed')
+  ->name('list-unsubscribe.one-click'); // must match the name used in URL::temporarySignedRoute
+
+Route::post('/.well-known/list-unsubscribe', ListUnsubscribeController::class)
+  ->middleware('signed'); // POST has same URI; signed URL still validates
