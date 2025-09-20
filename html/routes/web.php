@@ -17,6 +17,7 @@ use App\Http\Controllers\UnsubscribePageController;
 use App\Http\Controllers\Webhooks\ResendWebhookController;
 use App\Http\Controllers\WellKnown\ListUnsubscribeController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -158,7 +159,8 @@ Route::get('/.well-known/list-unsubscribe', ListUnsubscribeController::class)
   ->name('list-unsubscribe.one-click'); // must match the name used in URL::temporarySignedRoute
 
 Route::post('/.well-known/list-unsubscribe', ListUnsubscribeController::class)
-  ->middleware('signed'); // POST has same URI; signed URL still validates
+  ->middleware('signed')
+  ->withoutMiddleware([VerifyCsrfToken::class]); // POST has same URI; signed URL still validates
 
 // Page-style Unsubscribe (signed GET shows confirm UI; POST confirms with CSRF)
 Route::get('/unsubscribe', [UnsubscribePageController::class, 'show'])
@@ -166,7 +168,9 @@ Route::get('/unsubscribe', [UnsubscribePageController::class, 'show'])
   ->name('unsubscribe.page');
 
 Route::post('/unsubscribe', [UnsubscribePageController::class, 'confirm'])
+  ->withoutMiddleware([VerifyCsrfToken::class]) // CSRF not needed; signed URL still validates
   ->name('unsubscribe.confirm');
 
 Route::post('/webhooks/resend', ResendWebhookController::class)
+  ->withoutMiddleware([VerifyCsrfToken::class])
   ->name('webhooks.resend');
