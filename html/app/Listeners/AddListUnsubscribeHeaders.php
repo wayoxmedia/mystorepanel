@@ -24,132 +24,85 @@ class AddListUnsubscribeHeaders
       return;
     }
 
-    // --- Load config (preserve your parameters) ---
-    $cfg            = (array) config('mystore.mail', []);
-    $customHeaders  = isset($cfg['headers']) && is_array($cfg['headers'])
-      ? $cfg['headers']
-      : [];
-    $cfgFromAddress = $cfg['from']['address'] ?? null;
-    $cfgListUnsub   = trim((string) ($cfg['list_unsubscribe'] ?? ''));
+    // --- Resolve tenant_id from the outgoing message (REQUIRED) ---
+    // 1) Prefer custom header X-Tenant-Id (set when building the message)
+    $headers = $message->getHeaders();
+    $tenantId = null;
+    if ($headers->has('X-Tenant-Id')) {
+      $tenantId = (int) trim((string) $headers->get('X-Tenant-Id')->getBodyAsString());
+    }
 
-    // If a route is not registered yet, we can still add mailto/configured URIs
+    // 2) Fallback to $event->data['tenant_id'] if present (Mailables / Mail::send view data)
+    if (! $tenantId && isset($event->data['tenant_id'])) {
+      $tenantId = (int) $event->data['tenant_id'];
+    }
+
+    // Mandatory: without tenant we do NOT emit unsubscribe URLs
+    if (! $tenantId || $tenantId <= 0) {
+      return;
+    }
+
+    // If routes are not registered yet, skip to avoid errors
     $hasOneClickRoute = Route::has('list-unsubscribe.one-click');
+    $hasPageRoute     = Route::has('unsubscribe.page');
 
-    // Determine domain (prefer configured from, else message from, else app.url)
+    // Determine sender domain to build mailto fallback
     $from = $message->getFrom();
-    $fromAddress = $cfgFromAddress
-      ?: (!empty($from) ? $from[0]->getAddress() : null);
-
+    $fromAddress = !empty($from) ? $from[0]->getAddress() : null;
     $domain = $fromAddress && str_contains($fromAddress, '@')
       ? Str::after($fromAddress, '@')
-      : (parse_url(
-        (string) config('app.url'),
-        PHP_URL_HOST)
-        ?: 'mystorepanel.com'
-      );
+      : (parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'example.com');
 
-    // --- Build URIs for List-Unsubscribe ---
+    // --- Build URIs: mailto + page (signed) + one-click (signed) ---
     $uris = [];
 
-    // A) From config: allow CSV or single value; accept http(s) or mailto or bare email
-    if ($cfgListUnsub !== '') {
-      foreach (preg_split('/\s*,\s*/', $cfgListUnsub) as $u) {
-        $u = trim($u);
-        if ($u === '') {
-          continue;
-        }
-        $uris[] = $this->normalizeUri($u);
+    // Ensure a mailto fallback exists
+    $uris[] = "mailto:unsubscribe@{$domain}?subject=unsubscribe";
+
+    // Determine primary recipient (typical transactional email has one To)
+    $to = $message->getTo();
+    if (! empty($to)) {
+      $primary = $to[0]->getAddress();
+
+      if ($hasPageRoute) {
+        $pageUrl = URL::temporarySignedRoute(
+          'unsubscribe.page',
+          now()->addDays(14),
+          ['email' => $primary, 'tenant_id' => $tenantId]
+        );
+        $uris[] = $pageUrl;
       }
-    }
 
-    // B) Ensure we have a mailto fallback if none present
-    $hasMailto = collect($uris)
-      ->contains(fn ($u) => Str::startsWith(
-        $u,
-        'mailto:'
-      ));
-    if (! $hasMailto) {
-      $uris[] = "mailto:unsubscribe@{$domain}?subject=unsubscribe";
-    }
-
-    // C) Append One-Click HTTPS (signed) if route exists
-    if ($hasOneClickRoute) {
-      // Determine primary recipient (usual transactional email has one To)
-      $to = $message->getTo();
-      if (! empty($to)) {
-        $primary = $to[0]->getAddress();
+      if ($hasOneClickRoute) {
         $oneClickUrl = URL::temporarySignedRoute(
           'list-unsubscribe.one-click',
           now()->addDays(14),
-          ['email' => $primary]
+          ['email' => $primary, 'tenant_id' => $tenantId]
         );
         $uris[] = $oneClickUrl;
       }
     }
 
-    // De-dup & format with angle brackets as per RFC
+    // Deduplicate & format per RFC (angle brackets, comma-separated)
     $uris = array_values(array_unique($uris));
-    $headerValue = implode(
-      ', ',
-      array_map(fn ($u) => "<{$u}>", $uris)
-    );
+    $headerValue = implode(', ', array_map(fn ($u) => "<{$u}>", $uris));
 
-    // --- DEDUPE: remove any previous headers and apply ours ---
-    $headers = $message->getHeaders();
+    // Remove previous headers (avoid duplicates) and add ours
     if ($headers->has('List-Unsubscribe')) {
       $headers->remove('List-Unsubscribe');
     }
     if ($headers->has('List-Unsubscribe-Post')) {
       $headers->remove('List-Unsubscribe-Post');
     }
+    $headers->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+    $headers->addTextHeader('List-Unsubscribe', $headerValue);
 
-    // RFC 8058: one-click flag
-    $headers->addTextHeader(
-      'List-Unsubscribe-Post',
-      'List-Unsubscribe=One-Click'
-    );
-    // RFC 2369: multiple URIs allowed (mailto + https)
-    $headers->addTextHeader(
-      'List-Unsubscribe',
-      $headerValue
-    );
-
-    // --- Extra custom headers from config (e.g., X-System) ---
+    // Extra headers from your config (optional)
+    $customHeaders = (array) (config('mystore.mail.headers') ?? []);
     foreach ($customHeaders as $key => $val) {
-      if (! is_string($key) || $key === '' || $val === null) {
-        continue;
-      }
-      if ($headers->has($key)) {
-        $headers->remove($key);
-      }
+      if (! is_string($key) || $key === '' || $val === null) continue;
+      if ($headers->has($key)) $headers->remove($key);
       $headers->addTextHeader($key, (string) $val);
     }
-
-    // Note: We DO NOT try to set Return-Path here; with API providers (Resend)
-    // the envelope sender is controlled by the provider, not by headers.
-  }
-
-  /**
-   * Normalize user-provided URI for List-Unsubscribe:
-   * - If it's a bare email, convert to mailto.
-   * - If it already starts with http(s) or mailto, keep as is.
-   * - Else, return as is (provider will ignore invalid URIs).
-   * @param string $u
-   * @return string
-   */
-  private function normalizeUri(string $u): string
-  {
-    if (Str::startsWith(
-      $u,
-      ['http://', 'https://', 'mailto:'])
-    ) {
-      return $u;
-    }
-    // Bare email like "unsubscribe@domain.com"
-    if (str_contains($u, '@') && ! str_contains($u, ' ')) {
-      return 'mailto:' . $u;
-    }
-    // Fallback: return as is (provider will ignore invalid URIs)
-    return $u;
   }
 }

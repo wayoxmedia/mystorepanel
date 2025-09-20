@@ -15,6 +15,7 @@
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.10.1",
     "resend/resend-laravel": "^0.22.0",
+    "svix/svix": "^1.76",
     "tymon/jwt-auth": "^2.2"
   },
   "require-dev": {

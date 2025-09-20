@@ -13,6 +13,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\PlaygroundController;
+use App\Http\Controllers\UnsubscribePageController;
+use App\Http\Controllers\Webhooks\ResendWebhookController;
 use App\Http\Controllers\WellKnown\ListUnsubscribeController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -157,3 +159,14 @@ Route::get('/.well-known/list-unsubscribe', ListUnsubscribeController::class)
 
 Route::post('/.well-known/list-unsubscribe', ListUnsubscribeController::class)
   ->middleware('signed'); // POST has same URI; signed URL still validates
+
+// Page-style Unsubscribe (signed GET shows confirm UI; POST confirms with CSRF)
+Route::get('/unsubscribe', [UnsubscribePageController::class, 'show'])
+  ->middleware('signed')
+  ->name('unsubscribe.page');
+
+Route::post('/unsubscribe', [UnsubscribePageController::class, 'confirm'])
+  ->name('unsubscribe.confirm');
+
+Route::post('/webhooks/resend', ResendWebhookController::class)
+  ->name('webhooks.resend');

@@ -11,10 +11,8 @@ class ListUnsubscribeController extends Controller
 {
   /**
    * Handle both GET and POST One-Click Unsubscribe requests.
-   * Requirements:
-   * - Signed URL (already enforced by 'signed' middleware).
-   * - Accept POST with "List-Unsubscribe=One-Click" form body (Gmail/Yahoo).
-   * - Do not require any auth; must be a one-click action.
+   * - Signed URL enforced by 'signed' middleware in routes.
+   * - Marks email as unsubscribed in subscribers table.
    */
   public function __invoke(Request $request)
   {
@@ -23,25 +21,60 @@ class ListUnsubscribeController extends Controller
       return response('Invalid or expired signature.', 400);
     }
 
-    // Recipient bound to the signed URL (from the header we injected).
-    $email = (string) $request->query('email', '');
+    // Normalize and validate email
+    $email = strtolower(
+      trim((string) $request->query('email', ''))
+    );
+    if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      return response('Invalid email.', 400);
+    }
 
-    // TODO: In a future step, persist to a suppression table per tenant.
-    Log::info('[One-Click Unsubscribe] Accepted', [
-      'email'  => $email,
-      'method' => $request->method(),
-      'ip'     => $request->ip(),
-      'ua'     => $request->userAgent(),
+    // Optional: restrict to one tenant if you later include tenant_id in the signed URL
+    $tenantId = $request->query('tenant_id');
+
+    // Build update payload
+    $now = now();
+    $meta = [
+      'ip'        => $request->ip(),
+      'userAgent' => $request->userAgent(),
+      'method'    => $request->method(),
+      'source'    => 'one_click',
+      'at'        => $now->toIso8601String(),
+    ];
+
+    // Update subscribers: email channel only (address_type = 'e')
+    $q = DB::table('subscribers')
+      ->where('address_type', 'e')
+      ->whereRaw('LOWER(address) = ?', [$email]);
+
+    if (! empty($tenantId)) {
+      $q->where('tenant_id', $tenantId);
+    }
+
+    $affected = $q->update([
+      'unsubscribed_at'   => $now,
+      'unsubscribe_source'=> 'one_click',
+      'unsubscribe_meta'  => json_encode(
+        $meta,
+        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+      ),
+      'active'            => 0,
+      'updated_at'        => $now,
     ]);
 
-    // RFC 8058 allows 200/204. Return plain text 200 for easier debugging today.
-    return
-      response(
-        'Unsubscribed',
-        200
-      )->header(
-        'Content-Type',
-        'text/plain'
-      );
+    Log::info('[One-Click Unsubscribe] Persisted', [
+      'email'    => $email,
+      'tenantId' => $tenantId,
+      'affected' => $affected,
+    ]);
+
+    // 200 OK text response (RFC-friendly; Gmail/Yahoo accept 200/204)
+    return response(
+      'Unsubscribed',
+      200
+    )->header(
+      'Content-Type',
+      'text/plain'
+    );
   }
 }

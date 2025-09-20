@@ -21,8 +21,9 @@ class VerifyServiceToken
    *
    * @var array<int, string>
    */
-  protected $except = [
+  protected array $except = [
     '/.well-known/list-unsubscribe',
+    '/webhooks/resend',
   ];
 
   /**
