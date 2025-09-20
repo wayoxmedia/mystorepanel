@@ -34,6 +34,14 @@ class ResendWebhookController extends Controller
   {
     // 1) Leer el RAW body (requisito para verificar firma)
     $payload = $request->getContent();
+    Log::info('Resend webhook hit', [
+      'has_svix_id'        => $request->headers->has('svix-id'),
+      'has_svix_timestamp' => $request->headers->has('svix-timestamp'),
+      'has_svix_signature' => $request->headers->has('svix-signature'),
+      'ua'                 => $request->userAgent(),
+      'ip'                 => $request->ip(),
+    ]);
+
 
     // 2) Headers posibles: svix-* (principal) o webhook-* (algunas integraciones)
     $svixId        = $request->header('svix-id')
@@ -83,6 +91,11 @@ class ResendWebhookController extends Controller
     }
 
     // tenant_id desde tags si viene (recomendado cuando envíes con Resend)
+    Log::info('Resend webhook received', [
+      'type' => $type,
+      'email' => $email,
+      'tenant_tag' => $tags['tenant_id'] ?? null,
+    ]);
     $tags = (array) ($data['tags'] ?? []);
     $tenantId = null;
     if (isset($tags['tenant_id']) && ctype_digit((string) $tags['tenant_id'])) {
