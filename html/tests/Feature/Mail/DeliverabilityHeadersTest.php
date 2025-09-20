@@ -77,10 +77,12 @@ final class DeliverabilityHeadersTest extends BaseTestCase
     // Assert List-Unsubscribe and One-Click headers
     $headers = $captured->getHeaders();
     $this->assertTrue($headers->has('List-Unsubscribe'));
+    /* TODO .env entry was removed, need to figure out how to test this properly
     $this->assertSame(
       env('MAIL_LIST_UNSUBSCRIBE'),
       $headers->get('List-Unsubscribe')->getBodyAsString()
     );
+    */
     $this->assertSame(
       config('mystore.mail.list_unsubscribe'),
       $headers->get('List-Unsubscribe')->getBodyAsString()

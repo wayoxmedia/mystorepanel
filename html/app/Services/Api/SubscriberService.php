@@ -33,7 +33,7 @@ class SubscriberService
     }
 
     return Subscriber::query()->create([
-      'store_id' => $data['store_id'],
+      'tenant_id' => $data['tenant_id'],
       'address' => $data['iptAddress'],
       'address_type' => $data['selAddressType'],
       'user_ip' => $data['user_ip'] ?? null,

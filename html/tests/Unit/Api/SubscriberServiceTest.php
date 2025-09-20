@@ -59,14 +59,14 @@ class SubscriberServiceTest extends TestCase
         'data' => [
           'iptAddress' => 'test@example.com',
           'selAddressType' => 'e',
-          'store_id' => 1
+          'tenant_id' => 1
         ]
       ],
       'Valid Phone Subscriber' => [
         'data' => [
           'iptAddress' => '+1234567890',
           'selAddressType' => 'p',
-          'store_id' => 1
+          'tenant_id' => 1
         ]
       ]
     ];

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Feature\Admin;
+namespace Tests\Feature\Admin;
 
 use App\Mail\InvitationMail;
 use App\Models\Invitation;
