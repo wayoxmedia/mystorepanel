@@ -108,12 +108,6 @@ class ResendWebhookController extends Controller
       $email = strtolower((string) $toRaw);
     }
 
-    // tenant_id desde tags si viene (recomendado cuando envíes con Resend)
-    Log::info('Resend webhook received', [
-      'type' => $type,
-      'email' => $email,
-      'tenant_tag' => $tags['tenant_id'] ?? null,
-    ]);
     $tags = $data['tags'] ?? [];
     $tenantId = null;
     if (is_array($tags)) {
@@ -131,6 +125,14 @@ class ResendWebhookController extends Controller
         }
       }
     }
+
+    // tenant_id desde tags si viene (recomendado cuando envíes con Resend)
+    Log::info('Resend webhook received', [
+      'type' => $type,
+      'email' => $email,
+      'tenant_id'  => $tenantId,
+      'tags_raw'   => $event['data']['tags'] ?? null,
+    ]);
 
     $now  = now();
     $meta = [
