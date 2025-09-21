@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PlaygroundController;
 use App\Http\Controllers\UnsubscribePageController;
 use App\Http\Controllers\Webhooks\ResendWebhookController;
@@ -174,3 +175,15 @@ Route::post('/unsubscribe', [UnsubscribePageController::class, 'confirm'])
 Route::post('/webhooks/resend', ResendWebhookController::class)
   ->withoutMiddleware([VerifyCsrfToken::class])
   ->name('webhooks.resend');
+
+/**
+ * Health check endpoints (no auth, but secret token in URL param)
+ *
+ * To configure, set HEALTH_TOKEN=some-secret-value in .env
+ * and provide the same value in the X-Health-Token header.
+ */
+Route::get('/health/live', [HealthController::class, 'live'])
+  ->name('health.live');
+Route::get('/health/ready', [HealthController::class, 'ready'])
+  ->name('health.ready');
+
