@@ -34,6 +34,14 @@ class ResendWebhookController extends Controller
   {
     // 1) Leer el RAW body (requisito para verificar firma)
     $payload = $request->getContent();
+    Log::info('Resend webhook hit', [
+      'has_svix_id'        => $request->headers->has('svix-id'),
+      'has_svix_timestamp' => $request->headers->has('svix-timestamp'),
+      'has_svix_signature' => $request->headers->has('svix-signature'),
+      'ua'                 => $request->userAgent(),
+      'ip'                 => $request->ip(),
+    ]);
+
 
     // 2) Headers posibles: svix-* (principal) o webhook-* (algunas integraciones)
     $svixId        = $request->header('svix-id')
@@ -60,8 +68,15 @@ class ResendWebhookController extends Controller
 
     try {
       $wh = new Webhook($secret);
-      $json = $wh->verify($payload, $headers); // throws si invalido
-      $event = json_decode($json, true) ?? [];
+      $verified = $wh->verify($payload, $headers);
+      $event = is_array($verified)
+        ? $verified
+        : json_decode(
+          $verified,
+          true,
+          512,
+          JSON_THROW_ON_ERROR
+        );
     } catch (Throwable $e) {
       Log::warning(
         'Resend webhook: signature verification failed',
@@ -76,18 +91,46 @@ class ResendWebhookController extends Controller
     $type = (string) ($event['type'] ?? '');
     $data = (array)   ($event['data'] ?? []);
 
-    // Email destino (tomamos el primero)
-    $email = strtolower((string) (($data['to'][0] ?? '') ?: ($data['email'] ?? '')));
-    if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-      return response('No email', 200);
+    // to: puede venir como string, como array de strings o de objetos
+    $toRaw = $data['to'] ?? ($data['email'] ?? null);
+    if (is_array($toRaw)) {
+      $first = $toRaw[0] ?? null;
+      if (is_string($first)) {
+        $email = strtolower($first);
+      } elseif (is_array($first) && isset($first['email'])) {
+        $email = strtolower((string) $first['email']);
+      } else {
+        $email = '';
+      }
+    } else {
+      $email = strtolower((string) $toRaw);
+    }
+
+    $tags = $data['tags'] ?? [];
+    $tenantId = null;
+    if (is_array($tags)) {
+      $isList = array_is_list($tags);
+      if ($isList) {
+        foreach ($tags as $tag) {
+          if (($tag['name'] ?? '') === 'tenant_id') {
+            $tenantId = (int) ($tag['value'] ?? 0);
+            break;
+          }
+        }
+      } else {
+        if (isset($tags['tenant_id'])) {
+          $tenantId = (int) $tags['tenant_id'];
+        }
+      }
     }
 
     // tenant_id desde tags si viene (recomendado cuando envíes con Resend)
-    $tags = (array) ($data['tags'] ?? []);
-    $tenantId = null;
-    if (isset($tags['tenant_id']) && ctype_digit((string) $tags['tenant_id'])) {
-      $tenantId = (int) $tags['tenant_id'];
-    }
+    Log::info('Resend webhook received', [
+      'type' => $type,
+      'email' => $email,
+      'tenant_id'  => $tenantId,
+      'tags_raw'   => $event['data']['tags'] ?? null,
+    ]);
 
     $now  = now();
     $meta = [
