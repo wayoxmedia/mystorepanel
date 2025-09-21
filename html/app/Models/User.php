@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTenantRoles;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
@@ -29,7 +30,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  */
 class User extends Authenticatable implements JWTSubject, MustVerifyEmailContract
 {
-  use MustVerifyEmail;
+  use MustVerifyEmail, HasTenantRoles;
 
   /** @use HasFactory<UserFactory> */
   use HasFactory, Notifiable;
@@ -171,5 +172,21 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
   public function scopeForTenant($query, ?int $tenantId): Builder
   {
     return $tenantId ? $query->where('tenant_id', $tenantId) : $query;
+  }
+
+  /**
+   * Boot method to handle model events.
+   *
+   * Never allow setting tenant_id for platform_super_admin users.
+   * @return void
+   */
+  protected static function booted(): void
+  {
+    static::saving(function (User $user) {
+      // asume que tu trait HasTenantRoles ya está en el modelo
+      if ($user->getRoleSlug() === 'platform_super_admin') {
+        $user->tenant_id = null;
+      }
+    });
   }
 }

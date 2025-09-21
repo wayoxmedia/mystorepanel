@@ -51,7 +51,7 @@ class AccountController extends Controller
     $user->password = Hash::make($request->string('password'));
     $user->save();
 
-    AuditLog::create([
+    AuditLog::query()->create([
       'actor_id' => $user->id,
       'action' => 'account.password_changed',
       'subject_type' => get_class($user),

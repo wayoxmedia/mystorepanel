@@ -11,7 +11,17 @@ use Symfony\Component\Mime\Email;
 class AddListUnsubscribeHeaders
 {
   /**
-   * Handle the event.
+   * AddListUnsubscribeHeaders
+   *
+   *  Purpose:
+   *  - Ensure every outgoing email carries proper List-Unsubscribe headers:
+   *    * List-Unsubscribe (RFC 2369) -> can contain multiple URIs (comma-separated)
+   *    * List-Unsubscribe-Post: List-Unsubscribe=One-Click (RFC 8058)
+   *
+   *  Behavior:
+   *  - ALWAYS include the well-known one-click endpoint.
+   *  - Optionally include a mailto: and a preferences page link if configured.
+   *  - Works in all environments, including "testing" with MAIL_MAILER=array.
    *
    * @param  MessageSending  $event
    * @return void
@@ -20,25 +30,48 @@ class AddListUnsubscribeHeaders
   {
     // Safety: ensure we have a Symfony Email instance
     $message = $event->message;
-    if (! $message instanceof Email) {
+    if (!$message instanceof Email) {
       return;
     }
 
     // --- Resolve tenant_id from the outgoing message (REQUIRED) ---
     // 1) Prefer custom header X-Tenant-Id (set when building the message)
     $headers = $message->getHeaders();
+    $custom = (array) config('mystore.mail.headers', []);
+    foreach ($custom as $name => $value) {
+      if ($value === null || $value === '') {
+        continue;
+      }
+      // Avoid duplicates on retries/re-sends
+      if ($headers->has($name)) {
+        $headers->remove($name);
+      }
+      $headers->addTextHeader($name, (string) $value);
+    }
+
+    // Ensure Return-Path header is present for testing/logs.
+    // In SMTP this is envelope-level, but adding the header is harmless.
+    // Use a Path header so it’s formatted as <address>.
+    $bounce = (string)config('mystore.mail.bounce', '');
+    if ($bounce !== '') {
+      if ($headers->has('Return-Path')) {
+        $headers->remove('Return-Path');
+      }
+      $headers->addPathHeader('Return-Path', $bounce);
+    }
+
     $tenantId = null;
     if ($headers->has('X-Tenant-Id')) {
-      $tenantId = (int) trim((string) $headers->get('X-Tenant-Id')->getBodyAsString());
+      $tenantId = (int) trim($headers->get('X-Tenant-Id')->getBodyAsString());
     }
 
     // 2) Fallback to $event->data['tenant_id'] if present (Mailables / Mail::send view data)
-    if (! $tenantId && isset($event->data['tenant_id'])) {
+    if (!$tenantId && isset($event->data['tenant_id'])) {
       $tenantId = (int) $event->data['tenant_id'];
     }
 
     // Mandatory: without tenant we do NOT emit unsubscribe URLs
-    if (! $tenantId || $tenantId <= 0) {
+    if (!$tenantId || $tenantId <= 0) {
       return;
     }
 
@@ -51,7 +84,11 @@ class AddListUnsubscribeHeaders
     $fromAddress = !empty($from) ? $from[0]->getAddress() : null;
     $domain = $fromAddress && str_contains($fromAddress, '@')
       ? Str::after($fromAddress, '@')
-      : (parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'example.com');
+      : (parse_url(
+        (string) config('app.url'),
+        PHP_URL_HOST)
+        ?: 'example.com'
+      );
 
     // --- Build URIs: mailto + page (signed) + one-click (signed) ---
     $uris = [];
@@ -61,7 +98,7 @@ class AddListUnsubscribeHeaders
 
     // Determine primary recipient (typical transactional email has one To)
     $to = $message->getTo();
-    if (! empty($to)) {
+    if (!empty($to)) {
       $primary = $to[0]->getAddress();
 
       if ($hasPageRoute) {
@@ -85,7 +122,10 @@ class AddListUnsubscribeHeaders
 
     // Deduplicate & format per RFC (angle brackets, comma-separated)
     $uris = array_values(array_unique($uris));
-    $headerValue = implode(', ', array_map(fn ($u) => "<{$u}>", $uris));
+    $headerValue = implode(
+      ', ',
+      array_map(fn($u) => "<{$u}>", $uris)
+    );
 
     // Remove previous headers (avoid duplicates) and add ours
     if ($headers->has('List-Unsubscribe')) {
@@ -94,14 +134,24 @@ class AddListUnsubscribeHeaders
     if ($headers->has('List-Unsubscribe-Post')) {
       $headers->remove('List-Unsubscribe-Post');
     }
-    $headers->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
-    $headers->addTextHeader('List-Unsubscribe', $headerValue);
+    $headers->addTextHeader(
+      'List-Unsubscribe-Post',
+      'List-Unsubscribe=One-Click'
+    );
+    $headers->addTextHeader(
+      'List-Unsubscribe',
+      $headerValue
+    );
 
     // Extra headers from your config (optional)
     $customHeaders = (array) (config('mystore.mail.headers') ?? []);
     foreach ($customHeaders as $key => $val) {
-      if (! is_string($key) || $key === '' || $val === null) continue;
-      if ($headers->has($key)) $headers->remove($key);
+      if (!is_string($key) || $key === '' || $val === null) {
+        continue;
+      }
+      if ($headers->has($key)) {
+        $headers->remove($key);
+      }
       $headers->addTextHeader($key, (string) $val);
     }
   }

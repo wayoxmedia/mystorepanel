@@ -14,9 +14,18 @@ class EventServiceProvider extends ServiceProvider
    * @var array<class-string, array<int, class-string>>
    */
   protected $listen = [
-    // Add this line:
     MessageSending::class => [
       AddListUnsubscribeHeaders::class,
     ],
   ];
+
+  public function boot(): void
+  {
+    // nothing here — mapping via $listen is enough
+  }
+
+  public function shouldDiscoverEvents(): bool
+  {
+    return false; // set to true only if you prefer discovery and clear $listen
+  }
 }

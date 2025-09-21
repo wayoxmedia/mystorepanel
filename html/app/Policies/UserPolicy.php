@@ -11,9 +11,17 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Class UserPolicy
+ * UserPolicy
  *
- * Authorization policy for user management actions.
+ * Purpose:
+ * - Encapsulate fine-grained, per-resource authorization rules for User model.
+ * - Complements middleware (auth/tenant/role/reauth) with business rules that
+ *   depend on the *target* resource (e.g., platform_super_admin protection).
+ *
+ * Conventions:
+ * - We assume your User model has the HasTenantRoles trait with:
+ *     - getRoleCode(): string|null
+ *     - isPlatformSuperAdmin(): bool
  */
 class UserPolicy
 {
@@ -28,6 +36,15 @@ class UserPolicy
 
   /** Cache role_id lookups */
   private static array $roleIdCache = [];
+
+  /**
+   * "Before" hook:
+   * - If the actor is platform_super_admin, allow everything by default.
+   */
+  public function before(User $actor): ?bool
+  {
+    return $actor->isPlatformSuperAdmin() ? true : null;
+  }
 
   /**
    * Create a user in the given tenant.
