@@ -68,9 +68,7 @@ class ResendWebhookController extends Controller
 
     try {
       $wh = new Webhook($secret);
-      $json = $wh->verify($payload, $headers); // throws si invalido
       $verified = $wh->verify($payload, $headers);
-      // $event = json_decode($json, true) ?? [];
       $event = is_array($verified)
         ? $verified
         : json_decode(
