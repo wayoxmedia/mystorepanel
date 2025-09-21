@@ -40,15 +40,15 @@ class ReauthController extends Controller
 
     // User authenticated (JWT)
     $user = $request->user();
-    if (! $user) {
+    if (!$user) {
       return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     // Verify password
-    if (! Hash::check($data['password'], (string) $user->password)) {
+    if (!Hash::check($data['password'], (string)$user->password)) {
       return response()->json([
         'message' => 'Unauthorized',
-        'code'    => 'invalid_password',
+        'code' => 'invalid_password',
       ], 401);
     }
 
@@ -56,19 +56,20 @@ class ReauthController extends Controller
     $ttl = 10 * 60; // 10 minutes.
 
     // Link "flag" to this user and token
-    $token = (string) (JWTAuth::getToken() ?: '');
+    $token = (string)(JWTAuth::getToken() ?: '');
     $key = sprintf(
       'reauth:%d:%s',
-      $user->id, sha1($token)
+      $user->id,
+      sha1($token)
     );
 
     // TTL in mins for Cache::put
     Cache::put($key, now()->timestamp, $ttl / 60);
 
     return response()->json([
-      'status'       => 'ok',
+      'status' => 'ok',
       'reauth_until' => now()->addSeconds($ttl)->toIso8601String(),
-      'ttl_seconds'  => $ttl,
+      'ttl_seconds' => $ttl,
     ]);
   }
 }

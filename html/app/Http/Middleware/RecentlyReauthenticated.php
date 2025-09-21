@@ -23,15 +23,15 @@ class RecentlyReauthenticated
     $user = $request->user();
 
     // 401 if no authenticated user (JWT)
-    if (! $user) {
+    if (!$user) {
       return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     // Tomar el JWT actual (igual que en el controller de reauth)
-    $token = (string) (JWTAuth::getToken() ?: '');
+    $token = (string)(JWTAuth::getToken() ?: '');
     if ($token === '') {
       // Fallback por si acaso
-      $bearer = (string) $request->bearerToken();
+      $bearer = (string)$request->bearerToken();
       if ($bearer !== '') {
         $token = $bearer;
       }
@@ -39,14 +39,15 @@ class RecentlyReauthenticated
 
     $key = sprintf(
       'reauth:%d:%s',
-      $user->id, sha1($token)
+      $user->id,
+      sha1($token)
     );
 
     // If no flag in cache => require reauth
-    if (! Cache::has($key)) {
+    if (!Cache::has($key)) {
       return response()->json([
         'message' => 'Forbidden: reauth required',
-        'code'    => 'reauth_required',
+        'code' => 'reauth_required',
       ], 403);
     }
 

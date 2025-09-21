@@ -142,10 +142,9 @@ Route::middleware([
       'new' => ['status' => $data['status']],
       'note' => 'Status was NOT actually updated here (example endpoint). Replace with your controller.',
     ]);
-  })
+  }
+)
   ->name('tenants.users.status.update');
-
-
 
 
 /**

@@ -54,7 +54,7 @@ class RequestId
   /**
    * Normalize incoming id or mint a new one.
    *
-   * @param string $incoming
+   * @param  string  $incoming
    * @return string
    */
   private function normalize(string $incoming): string
@@ -65,6 +65,6 @@ class RequestId
     }
 
     // Otherwise, mint a new v4 UUID (lowercase).
-    return (string) Str::uuid();
+    return (string)Str::uuid();
   }
 }

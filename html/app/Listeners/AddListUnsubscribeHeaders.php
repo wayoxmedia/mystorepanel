@@ -37,7 +37,7 @@ class AddListUnsubscribeHeaders
     // --- Resolve tenant_id from the outgoing message (REQUIRED) ---
     // 1) Prefer custom header X-Tenant-Id (set when building the message)
     $headers = $message->getHeaders();
-    $custom = (array) config('mystore.mail.headers', []);
+    $custom = (array)config('mystore.mail.headers', []);
     foreach ($custom as $name => $value) {
       if ($value === null || $value === '') {
         continue;
@@ -46,7 +46,7 @@ class AddListUnsubscribeHeaders
       if ($headers->has($name)) {
         $headers->remove($name);
       }
-      $headers->addTextHeader($name, (string) $value);
+      $headers->addTextHeader($name, (string)$value);
     }
 
     // Ensure Return-Path header is present for testing/logs.
@@ -62,12 +62,12 @@ class AddListUnsubscribeHeaders
 
     $tenantId = null;
     if ($headers->has('X-Tenant-Id')) {
-      $tenantId = (int) trim($headers->get('X-Tenant-Id')->getBodyAsString());
+      $tenantId = (int)trim($headers->get('X-Tenant-Id')->getBodyAsString());
     }
 
     // 2) Fallback to $event->data['tenant_id'] if present (Mailables / Mail::send view data)
     if (!$tenantId && isset($event->data['tenant_id'])) {
-      $tenantId = (int) $event->data['tenant_id'];
+      $tenantId = (int)$event->data['tenant_id'];
     }
 
     // Mandatory: without tenant we do NOT emit unsubscribe URLs
@@ -77,7 +77,7 @@ class AddListUnsubscribeHeaders
 
     // If routes are not registered yet, skip to avoid errors
     $hasOneClickRoute = Route::has('list-unsubscribe.one-click');
-    $hasPageRoute     = Route::has('unsubscribe.page');
+    $hasPageRoute = Route::has('unsubscribe.page');
 
     // Determine sender domain to build mailto fallback
     $from = $message->getFrom();
@@ -85,8 +85,9 @@ class AddListUnsubscribeHeaders
     $domain = $fromAddress && str_contains($fromAddress, '@')
       ? Str::after($fromAddress, '@')
       : (parse_url(
-        (string) config('app.url'),
-        PHP_URL_HOST)
+        (string)config('app.url'),
+        PHP_URL_HOST
+      )
         ?: 'example.com'
       );
 
@@ -144,7 +145,7 @@ class AddListUnsubscribeHeaders
     );
 
     // Extra headers from your config (optional)
-    $customHeaders = (array) (config('mystore.mail.headers') ?? []);
+    $customHeaders = (array)(config('mystore.mail.headers') ?? []);
     foreach ($customHeaders as $key => $val) {
       if (!is_string($key) || $key === '' || $val === null) {
         continue;
@@ -152,7 +153,7 @@ class AddListUnsubscribeHeaders
       if ($headers->has($key)) {
         $headers->remove($key);
       }
-      $headers->addTextHeader($key, (string) $val);
+      $headers->addTextHeader($key, (string)$val);
     }
   }
 }

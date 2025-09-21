@@ -29,10 +29,10 @@ class UserPolicy
 
   /** Role slugs */
   private const R_PLATFORM_SUPER_ADMIN = 'platform_super_admin';
-  private const R_TENANT_OWNER   = 'tenant_owner';
-  private const R_TENANT_ADMIN   = 'tenant_admin';
-  private const R_TENANT_EDITOR  = 'tenant_editor';
-  private const R_TENANT_VIEWER  = 'tenant_viewer';
+  private const R_TENANT_OWNER = 'tenant_owner';
+  private const R_TENANT_ADMIN = 'tenant_admin';
+  private const R_TENANT_EDITOR = 'tenant_editor';
+  private const R_TENANT_VIEWER = 'tenant_viewer';
 
   /** Cache role_id lookups */
   private static array $roleIdCache = [];
@@ -49,8 +49,8 @@ class UserPolicy
   /**
    * Create a user in the given tenant.
    * Only within the same tenant.
-   * @param  User   $actor
-   * @param  Tenant $tenant
+   * @param  User  $actor
+   * @param  Tenant  $tenant
    * @return boolean
    */
   public function create(User $actor, Tenant $tenant): bool
@@ -67,8 +67,8 @@ class UserPolicy
   /**
    * Update the *role* of a target user.
    * Only within the same tenant.
-   * @param  User $actor
-   * @param  User $target
+   * @param  User  $actor
+   * @param  User  $target
    * @return boolean
    */
   public function updateRole(User $actor, User $target): bool
@@ -82,8 +82,8 @@ class UserPolicy
   /**
    * Update the *status* (activate/lock/suspend) of a target user.
    * Same rules as updateRole.
-   * @param  User $actor
-   * @param  User $target
+   * @param  User  $actor
+   * @param  User  $target
    * @return boolean
    */
   public function updateStatus(User $actor, User $target): bool
@@ -95,8 +95,8 @@ class UserPolicy
   /**
    * Impersonate a target user.
    * Allow cross-tenant only for platform super admins.
-   * @param  User $actor
-   * @param  User $target
+   * @param  User  $actor
+   * @param  User  $target
    * @return boolean
    */
   public function impersonate(User $actor, User $target): bool
@@ -116,20 +116,20 @@ class UserPolicy
 
   /**
    * Check if actor and other (User or Tenant) belong to the same tenant.
-   * @param  User           $actor
-   * @param  User|Tenant    $other
+   * @param  User  $actor
+   * @param  User|Tenant  $other
    * @return bool
    */
   private function sameTenant(User $actor, User|Tenant $other): bool
   {
     $otherTenantId = $other instanceof Tenant ? $other->id : $other->tenant_id;
-    return (int) $actor->tenant_id === (int) $otherTenantId;
+    return (int)$actor->tenant_id === (int)$otherTenantId;
   }
 
   /**
    * Check if the user has the specified role by slug.
-   * @param  User   $user
-   * @param  string $slug
+   * @param  User  $user
+   * @param  string  $slug
    * @return bool
    */
   private function hasRole(User $user, string $slug): bool
@@ -141,20 +141,20 @@ class UserPolicy
   /**
    * Check if the user has any of the specified roles by slugs.
    * @param  User  $user
-   * @param  array $slugs
+   * @param  array  $slugs
    * @return bool
    */
   private function hasAnyRole(User $user, array $slugs): bool
   {
-    $ids = array_map(fn (string $s) => $this->roleId($s), $slugs);
+    $ids = array_map(fn(string $s) => $this->roleId($s), $slugs);
     return in_array($user->role_id, $ids);
   }
 
   /**
    * Get role id by slug, with caching.
-   * @param string $slug
-   * @throws ModelNotFoundException
+   * @param  string  $slug
    * @return int
+   * @throws ModelNotFoundException
    */
   private function roleId(string $slug): int
   {
@@ -162,15 +162,15 @@ class UserPolicy
       $id = DB::table('roles')
         ->where('slug', $slug)
         ->value('id');
-      self::$roleIdCache[$slug] = (int) $id;
+      self::$roleIdCache[$slug] = (int)$id;
     }
     return self::$roleIdCache[$slug];
   }
 
   /**
    * Shared logic for updateRole and impersonate.
-   * @param User $actor
-   * @param User $target
+   * @param  User  $actor
+   * @param  User  $target
    * @return boolean
    */
   private function roleChecks(User $actor, User $target): bool

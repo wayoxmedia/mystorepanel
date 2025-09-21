@@ -109,7 +109,7 @@ class AuditLogger
   /**
    * Start a new audit for a given actor.
    * $actor can be null to represent system jobs/scheduler.
-   * @param Authenticatable|null $actor
+   * @param  Authenticatable|null  $actor
    * @return $this
    */
   public static function for(?Authenticatable $actor): self
@@ -118,16 +118,16 @@ class AuditLogger
 
     if ($actor) {
       $instance->actorId = method_exists($actor, 'getAuthIdentifier')
-        ? (int) $actor->getAuthIdentifier()
-        : (int) (($actor->id ?? 0) ?: null);
+        ? (int)$actor->getAuthIdentifier()
+        : (int)(($actor->id ?? 0) ?: null);
 
       // If your User model has the trait with getRoleCode(), read it; otherwise null.
       $instance->actorRole = method_exists($actor, 'getRoleCode')
-        ? (string) $actor->getRoleCode()
+        ? (string)$actor->getRoleCode()
         : null;
 
       // Actor tenant (if present in your User schema)
-      $instance->actorTenantId = isset($actor->tenant_id) ? (int) $actor->tenant_id : null;
+      $instance->actorTenantId = isset($actor->tenant_id) ? (int)$actor->tenant_id : null;
     }
 
     return $instance;
@@ -138,22 +138,22 @@ class AuditLogger
    *
    * If a Model is provided and it has tenant_id, we use it as a sensible default
    * for the target tenant (can be overridden via ->inTenant()).
-   * @param Model|array|null $subject
+   * @param  Model|array|null  $subject
    * @return $this
    */
   public function on(Model|array|null $subject): self
   {
     if ($subject instanceof Model) {
       $this->subjectType = get_class($subject);
-      $this->subjectId   = (int) $subject->getKey();
+      $this->subjectId = (int)$subject->getKey();
 
       // If the subject itself exposes tenant_id, use it as a sensible default
       if ($this->targetTenantId === null && isset($subject->tenant_id)) {
-        $this->targetTenantId = (int) $subject->tenant_id;
+        $this->targetTenantId = (int)$subject->tenant_id;
       }
     } elseif (is_array($subject)) {
-      $this->subjectType = isset($subject['type']) ? (string) $subject['type'] : null;
-      $this->subjectId   = isset($subject['id']) ? (int) $subject['id'] : null;
+      $this->subjectType = isset($subject['type']) ? (string)$subject['type'] : null;
+      $this->subjectId = isset($subject['id']) ? (int)$subject['id'] : null;
     }
 
     return $this;
@@ -163,7 +163,7 @@ class AuditLogger
    * Explicitly set the tenant of the *affected* entity (target).
    *
    * This is what we'll store in meta.tenant_id to aggregate audits by tenant.
-   * @param int|null $tenantId Null for platform-level actions.
+   * @param  int|null  $tenantId  Null for platform-level actions.
    * @return $this
    */
   public function inTenant(?int $tenantId): self
@@ -175,7 +175,7 @@ class AuditLogger
   /**
    * Set the stable action key (e.g., "user.status_changed").
    * This is required.
-   * @param string $action
+   * @param  string  $action
    * @return $this
    */
   public function action(string $action): self
@@ -188,7 +188,7 @@ class AuditLogger
    * Provide already-computed changes
    * (['field' => ['old' => v1, 'new' => v2]]).
    * Will redact sensitive values automatically.
-   * @param array $changes
+   * @param  array  $changes
    * @return $this
    */
   public function changes(array $changes): self
@@ -212,17 +212,16 @@ class AuditLogger
    * Note: if you want to track all changes,
    * just call ->changesFrom($before, $after)
    * without the third arg.
-   * @param array $before
-   * @param array $after
-   * @param array|null $onlyKeys
+   * @param  array  $before
+   * @param  array  $after
+   * @param  array|null  $onlyKeys
    * @return $this
    */
   public function changesFrom(
     array $before,
     array $after,
     ?array $onlyKeys = null
-  ): self
-  {
+  ): self {
     $keys = $onlyKeys ?: array_unique(
       array_merge(
         array_keys($before),
@@ -249,7 +248,7 @@ class AuditLogger
   /**
    * Add extra metadata keys (merged later).
    * Example: ['source' => 'api', 'note' => 'manual override']
-   * @param array $extra
+   * @param  array  $extra
    * @return $this
    */
   public function meta(array $extra): self
@@ -261,17 +260,17 @@ class AuditLogger
   /**
    * Persist the audit row using the existing AuditLog model.
    * Returns the created AuditLog instance.
-   * @throws InvalidArgumentException if action is not set.
    * @return AuditLog
+   * @throws InvalidArgumentException if action is not set.
    */
   public function save(): AuditLog
   {
     $payload = [
-      'actor_id'     => $this->actorId,
-      'action'       => (string) $this->action,
+      'actor_id' => $this->actorId,
+      'action' => (string)$this->action,
       'subject_type' => $this->subjectType,
-      'subject_id'   => $this->subjectId,
-      'meta'         => $this->buildMeta(), // array; Eloquent casts to JSON if configured
+      'subject_id' => $this->subjectId,
+      'meta' => $this->buildMeta(), // array; Eloquent casts to JSON if configured
     ];
 
     // Minimal safety checks
@@ -291,12 +290,12 @@ class AuditLogger
    * - $targetTenantId is the tenant of the *affected* entity (target).
    *
    * Returns the created AuditLog instance.
-   * @param Authenticatable|null $actor
-   * @param string $action
-   * @param Model|array|null $subject
-   * @param array $changes
-   * @param array $extraMeta
-   * @param int|null $targetTenantId
+   * @param  Authenticatable|null  $actor
+   * @param  string  $action
+   * @param  Model|array|null  $subject
+   * @param  array  $changes
+   * @param  array  $extraMeta
+   * @param  int|null  $targetTenantId
    * @return AuditLog
    * @throws InvalidArgumentException
    */
@@ -332,24 +331,24 @@ class AuditLogger
   protected function buildMeta(): array
   {
     $request = $this->safeRequest();
-    $source  = php_sapi_name() === 'cli' ? 'job' : 'api';
+    $source = php_sapi_name() === 'cli' ? 'job' : 'api';
 
     $meta = [
       // target tenant (important for multi-tenant aggregation)
       'tenant_id' => $this->targetTenantId,
-      'actor'     => [
-        'id'        => $this->actorId,
-        'role'      => $this->actorRole,     // e.g., tenant_admin, platform_super_admin
+      'actor' => [
+        'id' => $this->actorId,
+        'role' => $this->actorRole,     // e.g., tenant_admin, platform_super_admin
         'tenant_id' => $this->actorTenantId, // null for platform_super_admin
       ],
-      'request'   => [
-        'id'   => $request?->headers->get('X-Request-Id') ?: null,
-        'ip'   => $request?->ip(),
-        'ua'   => $request?->userAgent(),
+      'request' => [
+        'id' => $request?->headers->get('X-Request-Id') ?: null,
+        'ip' => $request?->ip(),
+        'ua' => $request?->userAgent(),
         // api | job | webhook (if you want, you can override via ->meta([...]))
         'source' => $source,
       ],
-      'reauth'    => $this->checkRecentReauth(),
+      'reauth' => $this->checkRecentReauth(),
     ];
 
     if (!empty($this->changes)) {
@@ -380,7 +379,7 @@ class AuditLogger
     }
 
     // Try to pull the same JWT we used in the Reauth flow
-    $token = (string) (JWTAuth::getToken() ?: '');
+    $token = (string)(JWTAuth::getToken() ?: '');
     if ($token === '') {
       $req = $this->safeRequest();
       $bearer = $req?->bearerToken();
@@ -416,7 +415,7 @@ class AuditLogger
    * - Masks known sensitive keys (password, token, secret, api_key, authorization).
    * - Apply recursively if needed.
    * - Also handles the common shape ['field' => ['old' => ..., 'new' => ...]].
-   * @param array $changes
+   * @param  array  $changes
    * @return array
    */
   protected function redact(array $changes): array
@@ -437,7 +436,7 @@ class AuditLogger
           12,
           max(
             6,
-            (int) ceil(
+            (int)ceil(
               strlen($v) * 0.6
             )
           )
@@ -452,7 +451,8 @@ class AuditLogger
       }
       $needsMask = in_array(
         strtolower((string)$key),
-        $sensitive, true
+        $sensitive,
+        true
       );
       // Only mask when key hints at sensitive data
       if ($needsMask) {
@@ -471,8 +471,9 @@ class AuditLogger
 
       if ($checkForPair) {
         $checkForSensitive = in_array(
-          strtolower((string) $field),
-          $sensitive, true
+          strtolower((string)$field),
+          $sensitive,
+          true
         );
         if ($checkForSensitive) {
           $pair['old'] = $mask((string)$pair['old']);

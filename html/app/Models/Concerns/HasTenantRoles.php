@@ -9,11 +9,11 @@ trait HasTenantRoles
    * Higher number means higher privilege.
    */
   protected array $ROLE_HIERARCHY = [
-    'tenant_viewer'         => 10,
-    'tenant_editor'         => 20,
-    'tenant_admin'          => 30,
-    'tenant_owner'          => 40,
-    'platform_super_admin'  => 100,
+    'tenant_viewer' => 10,
+    'tenant_editor' => 20,
+    'tenant_admin' => 30,
+    'tenant_owner' => 40,
+    'platform_super_admin' => 100,
   ];
 
   public function getRoleCode(): ?string
@@ -21,10 +21,10 @@ trait HasTenantRoles
     // 1) si hay relación roles, intenta slug/code/name
     if (method_exists($this, 'role')) {
       $role = $this->getRelationValue('role') ?: $this->role()->first(
-        ['id','slug','code','name']
+        ['id', 'slug', 'code', 'name']
       );
       if ($role) {
-        foreach (['slug','code','name'] as $f) {
+        foreach (['slug', 'code', 'name'] as $f) {
           if (isset($role->{$f}) && is_string($role->{$f})) {
             return strtolower($role->{$f});
           }
@@ -32,9 +32,9 @@ trait HasTenantRoles
       }
     }
     // 2) fallback: mapa en config/auth.php
-    $map = (array) config('roles.role_map', []);
+    $map = (array)config('roles.role_map', []);
     if (isset($this->role_id, $map[$this->role_id])) {
-      return strtolower((string) $map[$this->role_id]);
+      return strtolower((string)$map[$this->role_id]);
     }
     return null;
   }
@@ -50,13 +50,19 @@ trait HasTenantRoles
     bool $useHierarchy = true
   ): bool {
     $code = $this->getRoleCode();
-    if (!$code) return false;
+    if (!$code) {
+      return false;
+    }
 
     // super admin always passes
-    if ($code === 'platform_super_admin') return true;
+    if ($code === 'platform_super_admin') {
+      return true;
+    }
 
     // usuarios tenant_* solo en su tenant
-    if ((int) ($this->tenant_id ?? 0) !== $tenantId) return false;
+    if ((int)($this->tenant_id ?? 0) !== $tenantId) {
+      return false;
+    }
 
     $allowedRoles = array_map('strtolower', $allowedRoles);
 

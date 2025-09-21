@@ -21,16 +21,17 @@ class ExpireInvitations extends Command
 
   public function handle(): int
   {
-    $dryRun = (bool) $this->option('dry');
-    $now    = now();
+    $dryRun = (bool)$this->option('dry');
+    $now = now();
 
     $total = 0;
-    $this->info((
-      $dryRun
-        ? '[DRY RUN] '
-        : ''
+    $this->info(
+      (
+        $dryRun
+          ? '[DRY RUN] '
+          : ''
       )
-      . 'Expiring pending invitations older than ' . $now->toDateTimeString() . ' ...'
+      .'Expiring pending invitations older than '.$now->toDateTimeString().' ...'
     );
 
     Invitation::query()
@@ -56,11 +57,11 @@ class ExpireInvitations extends Command
           // Audit (best-effort; si falla no rompe el comando)
           try {
             AuditLog::query()->create([
-              'actor_id'     => config('mystore.system_actor_id', 0), // "system"
-              'action'       => 'invite.expired',
+              'actor_id' => config('mystore.system_actor_id', 0), // "system"
+              'action' => 'invite.expired',
               'subject_type' => Invitation::class,
-              'subject_id'   => $inv->id,
-              'meta'         => [
+              'subject_id' => $inv->id,
+              'meta' => [
                 'email' => $inv->email,
                 'tenant_id' => $inv->tenant_id,
                 'system' => true

@@ -38,18 +38,18 @@ class TenantUsersControllerTest extends TestCase
 
   /**
    * Quick lookup helpers from config('roles.map')
-   * @param string $code Role code, e.g. 'tenant_admin'
+   * @param  string  $code  Role code, e.g. 'tenant_admin'
    * @return int role_id
    */
   private function roleId(string $code): int
   {
-    $map = (array) config('roles.role_map', []);
-    $id  = array_search($code, $map, true);
+    $map = (array)config('roles.role_map', []);
+    $id = array_search($code, $map, true);
     $this->assertNotFalse(
       $id,
       "Missing role code '{$code}' in config('roles.role_map')."
     );
-    return (int) ($id);
+    return (int)($id);
   }
 
   /**
@@ -87,26 +87,26 @@ class TenantUsersControllerTest extends TestCase
   {
     /** @var Tenant $t */
     $t = Tenant::factory()->create();
-    return (object) ['id' => $t->id];
+    return (object)['id' => $t->id];
   }
 
   /**
    * Creates a user in a given tenant with defaults suitable for these tests
    * (overrides allow customizing role_id, status, etc.).
-   * @param int $tenantId
-   * @param array $overrides
+   * @param  int  $tenantId
+   * @param  array  $overrides
    * @return User
    */
   private function makeUser(int $tenantId, array $overrides = []): User
   {
     $defaults = [
-      'name'              => 'Test User',
-      'email'             => 'user'.uniqid().'@example.test',
-      'password'          => Hash::make(self::PWD),
-      'status'            => 'active',
+      'name' => 'Test User',
+      'email' => 'user'.uniqid().'@example.test',
+      'password' => Hash::make(self::PWD),
+      'status' => 'active',
       'email_verified_at' => now(),
-      'tenant_id'         => $tenantId,
-      'role_id'           => $this->tenantViewerId(), // default viewer
+      'tenant_id' => $tenantId,
+      'role_id' => $this->tenantViewerId(), // default viewer
     ];
 
     /** @var User $u */
@@ -118,8 +118,8 @@ class TenantUsersControllerTest extends TestCase
 
   /**
    * Build Authorization + X-Tenant-Id headers for the given user and tenant
-   * @param User $user
-   * @param int $tenantId
+   * @param  User  $user
+   * @param  int  $tenantId
    * @return array
    */
   private function authHeaders(User $user, int $tenantId): array
@@ -127,8 +127,8 @@ class TenantUsersControllerTest extends TestCase
     $token = JWTAuth::fromUser($user);
     return [
       'Authorization' => 'Bearer '.$token,
-      'X-Tenant-Id'   => (string) $tenantId,
-      'Accept'        => 'application/json',
+      'X-Tenant-Id' => (string)$tenantId,
+      'Accept' => 'application/json',
     ];
   }
 
@@ -136,8 +136,8 @@ class TenantUsersControllerTest extends TestCase
    * Calls POST /auth/reauth with the known password to set the short-lived flag
    * for the given user and tenant.
    * Asserts 200 OK and expected JSON structure.
-   * @param User $user
-   * @param int $tenantId
+   * @param  User  $user
+   * @param  int  $tenantId
    * @return void
    */
   private function reauth(User $user, int $tenantId): void
@@ -149,7 +149,7 @@ class TenantUsersControllerTest extends TestCase
     $res
       ->assertOk()
       ->assertJsonStructure(
-        ['status','reauth_until','ttl_seconds']
+        ['status', 'reauth_until', 'ttl_seconds']
       );
   }
 
@@ -162,18 +162,21 @@ class TenantUsersControllerTest extends TestCase
   {
     return [
       'Authorization' => 'Bearer '.$token,
-      'X-Tenant-Id'   => (string) $tenantId,
-      'Accept'        => 'application/json',
+      'X-Tenant-Id' => (string)$tenantId,
+      'Accept' => 'application/json',
     ];
   }
 
   /** Calls POST /auth/reauth using the SAME token that you'll reuse later */
   private function reauthWithToken(User $user, int $tenantId, string $token): void
   {
-    $res = $this->withHeaders($this->authHeadersWithToken($token, $tenantId))
+    $res = $this
+      ->withHeaders($this->authHeadersWithToken($token, $tenantId))
       ->postJson('/api/auth/reauth', ['password' => self::PWD]);
 
-    $res->assertOk()->assertJsonStructure(['status','reauth_until','ttl_seconds']);
+    $res->assertOk()->assertJsonStructure(
+      ['status', 'reauth_until', 'ttl_seconds']
+    );
   }
 
   /**
@@ -185,7 +188,7 @@ class TenantUsersControllerTest extends TestCase
   public function testUpdateStatusRequiresReauth(): void
   {
     $tenant = $this->makeTenant();
-    $actor  = $this->makeUser(
+    $actor = $this->makeUser(
       $tenant->id,
       ['role_id' => $this->tenantAdminId()]
     );
@@ -216,7 +219,7 @@ class TenantUsersControllerTest extends TestCase
     $tenant = $this->makeTenant();
 
     // Actor must be tenant_admin (or higher by hierarchy) in that tenant
-    $actor  = $this->makeUser(
+    $actor = $this->makeUser(
       $tenant->id,
       ['role_id' => $this->tenantAdminId()]
     );
@@ -238,10 +241,10 @@ class TenantUsersControllerTest extends TestCase
 
     $res->assertOk()
       ->assertJson([
-        'ok'        => true,
+        'ok' => true,
         'tenant_id' => $tenant->id,
-        'user_id'   => $target->id,
-        'new'       => ['status' => 'suspended'],
+        'user_id' => $target->id,
+        'new' => ['status' => 'suspended'],
       ]);
   }
 
@@ -255,7 +258,7 @@ class TenantUsersControllerTest extends TestCase
   {
     $tenant = $this->makeTenant();
 
-    $actor  = $this->makeUser(
+    $actor = $this->makeUser(
       $tenant->id,
       ['role_id' => $this->tenantAdminId()]
     );
@@ -282,12 +285,12 @@ class TenantUsersControllerTest extends TestCase
 
     $res->assertOk();
     $res->assertJson([
-      'ok'        => true,
+      'ok' => true,
       'tenant_id' => $tenant->id,
-      'user_id'   => $target->id,
-      'new'       => [
+      'user_id' => $target->id,
+      'new' => [
         'role_id' => $newRoleId,
-        'role'    => config('roles.role_map')[$newRoleId] ?? null,
+        'role' => config('roles.role_map')[$newRoleId] ?? null,
       ],
     ]);
   }
@@ -297,7 +300,7 @@ class TenantUsersControllerTest extends TestCase
   {
     $tenant = $this->makeTenant();
 
-    $actor  = $this->makeUser(
+    $actor = $this->makeUser(
       $tenant->id,
       ['role_id' => $this->tenantAdminId()]
     );

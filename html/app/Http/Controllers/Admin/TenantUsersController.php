@@ -43,18 +43,18 @@ class TenantUsersController extends Controller
    *  - 200 { ok: true, user_id, tenant_id, new: { status } }
    *  - 403 on cross-tenant access (unless platform_super_admin)
    *  - 403 when trying to modify a platform_super_admin without being one
-   * @param Request $request
-   * @param int $tenant_id
-   * @param User $user
-   * @throws ValidationException
+   * @param  Request  $request
+   * @param  int  $tenant_id
+   * @param  User  $user
    * @return JsonResponse
+   * @throws ValidationException
    */
   public function updateStatus(Request $request, int $tenant_id, User $user): JsonResponse
   {
     $actor = $request->user();
 
     // Cross-tenant guard: only platform_super_admin can act across tenants.
-    if (! $actor->isPlatformSuperAdmin() && (int) $user->tenant_id !== $tenant_id) {
+    if (!$actor->isPlatformSuperAdmin() && (int)$user->tenant_id !== $tenant_id) {
       return response()->json(
         ['message' => 'Forbidden: cross-tenant'],
         403
@@ -62,7 +62,7 @@ class TenantUsersController extends Controller
     }
 
     // Protect platform super admin accounts from non-super admins.
-    if ($user->getRoleCode() === 'platform_super_admin' && ! $actor->isPlatformSuperAdmin()) {
+    if ($user->getRoleCode() === 'platform_super_admin' && !$actor->isPlatformSuperAdmin()) {
       return response()->json(
         ['message' => 'Forbidden: cannot modify platform super admin'],
         403
@@ -81,8 +81,8 @@ class TenantUsersController extends Controller
     $before = ['status' => $user->status];
     if ($before['status'] === $data['status']) {
       return response()->json([
-        'ok'     => true,
-        'note'   => 'No changes applied (same status).',
+        'ok' => true,
+        'note' => 'No changes applied (same status).',
         'status' => $user->status,
       ]);
     }
@@ -107,10 +107,10 @@ class TenantUsersController extends Controller
       ->save();
 
     return response()->json([
-      'ok'        => true,
-      'user_id'   => $user->id,
+      'ok' => true,
+      'user_id' => $user->id,
       'tenant_id' => $tenant_id,
-      'new'       => ['status' => $user->status],
+      'new' => ['status' => $user->status],
     ]);
   }
 
@@ -130,18 +130,18 @@ class TenantUsersController extends Controller
    * - Enforces invariant: if new role is platform_super_admin,
    * tenant_id must be NULL.
    * - Writes a clear audit trail with both numeric and string role forms.
-   * @param Request $request
-   * @param int $tenant_id
-   * @param User $user
-   * @throws ValidationException
+   * @param  Request  $request
+   * @param  int  $tenant_id
+   * @param  User  $user
    * @return JsonResponse
+   * @throws ValidationException
    */
   public function updateRole(Request $request, int $tenant_id, User $user): JsonResponse
   {
     $actor = $request->user();
 
     // Cross-tenant guard.
-    if (!$actor->isPlatformSuperAdmin() && (int) $user->tenant_id !== $tenant_id) {
+    if (!$actor->isPlatformSuperAdmin() && (int)$user->tenant_id !== $tenant_id) {
       return response()->json(
         ['message' => 'Forbidden: cross-tenant'],
         403
@@ -157,7 +157,7 @@ class TenantUsersController extends Controller
     }
 
     // Validate role_id using your roles map.
-    $rolesMap = (array) config('roles.role_map', []);
+    $rolesMap = (array)config('roles.role_map', []);
     $validRoleIds = array_keys($rolesMap);
 
     $data = $request->validate([
@@ -165,18 +165,18 @@ class TenantUsersController extends Controller
     ]);
 
     // No-op if the role_id is unchanged.
-    $before = ['role_id' => (int) $user->role_id];
-    if ($before['role_id'] === (int) $data['role_id']) {
+    $before = ['role_id' => (int)$user->role_id];
+    if ($before['role_id'] === (int)$data['role_id']) {
       return response()->json([
-        'ok'      => true,
-        'note'    => 'No changes applied (same role_id).',
+        'ok' => true,
+        'note' => 'No changes applied (same role_id).',
         'role_id' => $user->role_id,
-        'role'    => $rolesMap[$user->role_id] ?? null,
+        'role' => $rolesMap[$user->role_id] ?? null,
       ]);
     }
 
     // Persist the change (and enforce platform super admin invariant).
-    $user->role_id = (int) $data['role_id'];
+    $user->role_id = (int)$data['role_id'];
 
     // If the new role is platform_super_admin, enforce tenant_id = null as a safety net.
     if (($rolesMap[$user->role_id] ?? null) === 'platform_super_admin') {
@@ -186,12 +186,12 @@ class TenantUsersController extends Controller
     $user->save();
 
     // Build rich audit changes (numeric and code forms).
-    $after   = ['role_id' => (int) $user->role_id];
+    $after = ['role_id' => (int)$user->role_id];
     $changes = [
       'role_id' => ['old' => $before['role_id'], 'new' => $after['role_id']],
-      'role'    => [
+      'role' => [
         'old' => $rolesMap[$before['role_id']] ?? null,
-        'new' => $rolesMap[$after['role_id']]  ?? null,
+        'new' => $rolesMap[$after['role_id']] ?? null,
       ],
     ];
 
@@ -206,12 +206,12 @@ class TenantUsersController extends Controller
       ->save();
 
     return response()->json([
-      'ok'        => true,
-      'user_id'   => $user->id,
+      'ok' => true,
+      'user_id' => $user->id,
       'tenant_id' => $tenant_id,
-      'new'       => [
+      'new' => [
         'role_id' => $user->role_id,
-        'role'    => $rolesMap[$user->role_id] ?? null,
+        'role' => $rolesMap[$user->role_id] ?? null,
       ],
     ]);
   }

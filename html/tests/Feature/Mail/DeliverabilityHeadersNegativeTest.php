@@ -14,10 +14,12 @@ class DeliverabilityHeadersNegativeTest extends TestCase
   public function testListUnsubscribeIsNotEmittedWithoutTenantId(): void
   {
     // Ensure APP_URL exists so URL-building code has a base (even if not used here)
-    config(['app.url' => config(
-      'app.url',
-      'http://mystorepanel.test'
-    )]);
+    config([
+      'app.url' => config(
+        'app.url',
+        'http://mystorepanel.test'
+      )
+    ]);
 
     $captured = null;
 
@@ -26,17 +28,20 @@ class DeliverabilityHeadersNegativeTest extends TestCase
       MessageSending::class,
       function (MessageSending $event) use (&$captured): void {
         $captured = $event->message;
-      });
+      }
+    );
 
     // Send a simple mailable WITHOUT injecting X-Tenant-Id
-    Mail::to('dest@test.local')->send(new class extends Mailable {
-      public function build(): Mailable
-      {
-        return $this
-          ->subject('Deliverability Negative Test (no tenant)')
-          ->html('<p>Hello from negative test</p>');
+    Mail::to('dest@test.local')->send(
+      new class extends Mailable {
+        public function build(): Mailable
+        {
+          return $this
+            ->subject('Deliverability Negative Test (no tenant)')
+            ->html('<p>Hello from negative test</p>');
+        }
       }
-    });
+    );
 
     // We should have captured a Symfony Email instance
     $this->assertInstanceOf(Email::class, $captured);
@@ -86,7 +91,7 @@ class DeliverabilityHeadersNegativeTest extends TestCase
       'Return-Path should be present for visibility in tests/logs'
     );
     $this->assertSame(
-      '<' . config('mystore.mail.bounce') . '>',
+      '<'.config('mystore.mail.bounce').'>',
       $headers->get('Return-Path')->getBodyAsString()
     );
   }

@@ -55,7 +55,10 @@ return Application::configure(basePath: dirname(__DIR__))
       ->onOneServer()
       ->withoutOverlapping();
     // Si prefieres otra cadencia:
-    // $schedule->command('invitations:expire')->everyFifteenMinutes()->onOneServer()->withoutOverlapping();
+    // $schedule->command('invitations:expire')
+    //   ->everyFifteenMinutes()
+    //   ->onOneServer()
+    //   ->withoutOverlapping();
   })
   ->withExceptions(function (Exceptions $exceptions) {
     //

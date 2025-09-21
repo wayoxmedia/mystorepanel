@@ -30,44 +30,54 @@ final class DeliverabilityHeadersTest extends BaseTestCase
   public function testGlobalHeadersAreInjectedViaMessageSendingEvent(): void
   {
     // Ensure APP_URL so the listener can build absolute URLs in testing
-    config(['app.url' => config('app.url', 'http://mystorepanel.test')]);
+    config([
+      'app.url' => config('app.url', 'http://mystorepanel.test')
+    ]);
 
     $captured = null;
     $tenantId = 123; // any valid tenant id for the test
 
     // Capture the built Symfony Email right before it's sent
-    Event::listen(MessageSending::class, function (MessageSending $event) use (&$captured): void {
-      $captured = $event->message;
-    });
+    Event::listen(
+      MessageSending::class,
+      function (MessageSending $event) use (&$captured): void {
+        $captured = $event->message;
+      }
+    );
 
     // Send a simple mailable.
     // We inject X-Tenant-Id at the Symfony level so the listener emits the headers.
-    Mail::to('dest@test.local')->send(new class($tenantId) extends Mailable {
-      public function __construct(private readonly int $tenantId) {}
+    Mail::to('dest@test.local')->send(
+      new class($tenantId) extends Mailable {
+        public function __construct(private readonly int $tenantId) {}
 
-      /**
-       * Build the message.
-       */
-      public function build(): Mailable
-      {
-        return $this
-          ->subject('Test Deliverability')
-          ->html('<p>Hello from test</p>')
-          // Inject tenant header so the listener will emit List-Unsubscribe
-          ->withSymfonyMessage(function (Email $email) {
-            $email
-              ->getHeaders()
-              ->addTextHeader('X-Tenant-Id', (string) $this->tenantId);
-          });
+        /**
+         * Build the message.
+         */
+        public function build(): Mailable
+        {
+          return $this
+            ->subject('Test Deliverability')
+            ->html('<p>Hello from test</p>')
+            // Inject tenant header so the listener will emit List-Unsubscribe
+            ->withSymfonyMessage(function (Email $email) {
+              $email
+                ->getHeaders()
+                ->addTextHeader('X-Tenant-Id', (string)$this->tenantId);
+            });
+        }
       }
-    });
+    );
 
     // We should have captured a Symfony Email instance
     $this->assertInstanceOf(Email::class, $captured);
 
     // Assert From fallback applied by provider
     $from = $captured->getFrom();
-    $this->assertNotEmpty($from, 'From header should be present.');
+    $this->assertNotEmpty(
+      $from,
+      'From header should be present.'
+    );
     $this->assertSame(
       env('MAIL_FROM_ADDRESS'),
       $from[0]->getAddress()
@@ -94,15 +104,29 @@ final class DeliverabilityHeadersTest extends BaseTestCase
     );
 
     $raw = $headers->get('List-Unsubscribe')->getBodyAsString();
-    // Header may include multiple URIs: mailto, prefs page, and one-click. Validate by containment.
-    $this->assertStringContainsString('/.well-known/list-unsubscribe', $raw, 'Must include one-click endpoint');
-    $this->assertStringContainsString('/unsubscribe', $raw, 'Should include preferences page');
+    // Header may include multiple URIs: mailto, prefs page, and one-click.
+    // Validate by containment.
+    $this->assertStringContainsString(
+      '/.well-known/list-unsubscribe',
+      $raw,
+      'Must include one-click endpoint'
+    );
+    $this->assertStringContainsString(
+      '/unsubscribe',
+      $raw,
+      'Should include preferences page'
+    );
 
-    // If you configured a mailto in config, assert it appears (handle both plain and prefixed forms)
-    $mailtoCfg = (string) config('mystore.mail.list_unsubscribe', '');
+    // If you configured a mailto in config,
+    // assert it appears (handle both plain and prefixed forms)
+    $mailtoCfg = (string)config('mystore.mail.list_unsubscribe', '');
     if ($mailtoCfg !== '') {
-      $needle = str_starts_with($mailtoCfg, 'mailto:') ? $mailtoCfg : ('mailto:' . $mailtoCfg);
-      $this->assertStringContainsString($needle, $raw, 'Should include mailto URI from config');
+      $needle = str_starts_with($mailtoCfg, 'mailto:') ? $mailtoCfg : ('mailto:'.$mailtoCfg);
+      $this->assertStringContainsString(
+        $needle,
+        $raw,
+        'Should include mailto URI from config'
+      );
     }
 
     $this->assertTrue(
@@ -125,13 +149,12 @@ final class DeliverabilityHeadersTest extends BaseTestCase
     // Assert Return-Path
     $this->assertTrue($headers->has('Return-Path'));
     $this->assertSame(
-      '<' . env('MAIL_BOUNCE_ADDRESS') . '>',
+      '<'.env('MAIL_BOUNCE_ADDRESS').'>',
       $headers->get('Return-Path')->getBodyAsString()
     );
     $this->assertSame(
-      '<' . config('mystore.mail.bounce') . '>',
+      '<'.config('mystore.mail.bounce').'>',
       $headers->get('Return-Path')->getBodyAsString()
     );
   }
-
 }

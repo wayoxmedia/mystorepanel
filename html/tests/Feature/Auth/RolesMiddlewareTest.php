@@ -31,7 +31,7 @@ class RolesMiddlewareTest extends TestCase
     Route::middleware($middlewares)
       ->get(
         '/_test/tenants/{tenant_id}/ping',
-        fn () => response()->json(
+        fn() => response()->json(
           ['ok' => true]
         )
       );
@@ -99,13 +99,12 @@ class RolesMiddlewareTest extends TestCase
         $tenantId = $tenant2->id;
         $userToUse = $this->makeSuperAdmin($userData);
         break;
-
     }
 
     $token = JWTAuth::fromUser($userToUse);
 
     $req = $this->withHeader('Authorization', 'Bearer '.$token)
-      ->withHeader('X-Tenant-Id', (string) $tenantId)
+      ->withHeader('X-Tenant-Id', (string)$tenantId)
       ->getJson("/_test/tenants/{$tenantId}/ping");
 
     if ($expectedOk) {
@@ -128,27 +127,41 @@ class RolesMiddlewareTest extends TestCase
     // $expectedOk, $userData, $scenario
     return [
       'Admin Of Same Tenant Gets 200' => [
-        true, ['role_id' => 3], 'admin_same_tenant'
+        true,
+        ['role_id' => 3],
+        'admin_same_tenant'
       ],
       // different tenant, PSAs are null
       'Platform SuperAdmin Bypasses Tenant And Gets 200' => [
-        true, ['tenant_id' => null, 'role_id' => 1], 'super_admin'
+        true,
+        ['tenant_id' => null, 'role_id' => 1],
+        'super_admin'
       ],
       // Route is explicitly tenant_admin, so viewer fails
       'Insufficient Role (Viewer) Gets 403' => [
-        false, ['role_id' => 5], 'viewer_same_tenant'
+        false,
+        ['role_id' => 5],
+        'viewer_same_tenant'
       ],
       'Cross Tenant Admin Access Gets 403' => [
-        false, ['role_id' => 3], 'admin_other_tenant'
+        false,
+        ['role_id' => 3],
+        'admin_other_tenant'
       ],
       'Unverified Email Gets 403' => [
-        false, ['role_id' => 3, 'email_verified_at' => null], 'unverified_email'
+        false,
+        ['role_id' => 3, 'email_verified_at' => null],
+        'unverified_email'
       ],
       'Inactive User Gets 403' => [
-        false, ['role_id' => 3, 'status' => 'locked'], 'inactive_user'
+        false,
+        ['role_id' => 3, 'status' => 'locked'],
+        'inactive_user'
       ],
       'Viewer Other Tenant Gets 403' => [
-        false, ['role_id' => 5], 'viewer_other_tenant'
+        false,
+        ['role_id' => 5],
+        'viewer_other_tenant'
       ],
     ];
   }
@@ -162,10 +175,10 @@ class RolesMiddlewareTest extends TestCase
   private function makeUser(Tenant $tenant, array $overrides = []): User
   {
     $defaults = [
-      'status'            => 'active',
+      'status' => 'active',
       'email_verified_at' => now(),
-      'tenant_id'         => $tenant->id,
-      'role_id'           => 5, // viewer por defecto
+      'tenant_id' => $tenant->id,
+      'role_id' => 5, // viewer por defecto
     ];
     $final = array_merge($defaults, $overrides);
 
@@ -185,12 +198,12 @@ class RolesMiddlewareTest extends TestCase
     unset($overrides['tenant_id'], $overrides['role_id']);
 
     $defaults = [
-      'status'            => 'active',
+      'status' => 'active',
       'email_verified_at' => now(),
     ];
     $forced = [
       'tenant_id' => null, // force null tenant_id
-      'role_id'=> 1 // force super admin
+      'role_id' => 1 // force super admin
     ];
     $data = array_merge($defaults, $overrides, $forced);
 

@@ -13,15 +13,15 @@ class EnsureUserIsActive
     $user = $request->user();
 
     // No autenticado -> 401
-    if (! $user) {
+    if (!$user) {
       return response()->json(['message' => 'Unauthorized'], 401);
     }
 
-    $status = (string) ($user->status ?? '');
+    $status = (string)($user->status ?? '');
     if ($status !== 'active') {
       return response()->json([
         'message' => 'Forbidden: user not active',
-        'status'  => $status,
+        'status' => $status,
       ], 403);
     }
 

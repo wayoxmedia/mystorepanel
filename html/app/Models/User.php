@@ -111,7 +111,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
    * Role helpers.
    *
    * Check if the user has a specific role by slug.
-   * @param  string $slug
+   * @param  string  $slug
    * @return bool
    * @throws ModelNotFoundException
    */
@@ -124,7 +124,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
   /**
    * Check if the user has any of the specified roles by slugs.
    *
-   * @param  array $slugs
+   * @param  array  $slugs
    * @return bool
    */
   public function hasAnyRole(array $slugs): bool
@@ -165,7 +165,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmailContrac
    * Tenant scope helper.
    *
    * @param  $query
-   * @param  int|null $tenantId
+   * @param  int|null  $tenantId
    * @return Builder
    * @throws ModelNotFoundException
    */
