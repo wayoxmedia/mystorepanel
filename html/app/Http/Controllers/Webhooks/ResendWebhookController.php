@@ -43,6 +43,13 @@ class ResendWebhookController extends Controller
   {
     // Raw body as array (Laravel parses JSON for us)
     $body = $request->json()->all();
+    Log::info('Resend webhook hit', [
+      'has_svix_id'        => $request->headers->has('svix-id'),
+      'has_svix_timestamp' => $request->headers->has('svix-timestamp'),
+      'has_svix_signature' => $request->headers->has('svix-signature'),
+      'ua'                 => $request->userAgent(),
+      'ip'                 => $request->ip(),
+    ]);
 
     // 1) Basic fields
     $type = (string)Arr::get($body, 'type', '');
