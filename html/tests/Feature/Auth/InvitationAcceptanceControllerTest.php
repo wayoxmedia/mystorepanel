@@ -312,6 +312,7 @@ final class InvitationAcceptanceControllerTest extends TestCase
    */
   public function testAcceptFailsForInvalidToken(): void
   {
+    $before = User::query()->count();
     Tenant::factory()->active()->withSeatLimit(1)->create();
 
     // No invitation for this token
@@ -330,7 +331,8 @@ final class InvitationAcceptanceControllerTest extends TestCase
     $res->assertStatus(302);
 
     // DB remains unchanged regarding invitations/users for that token/email
-    $this->assertDatabaseCount('users', 0);
+    // $this->assertDatabaseCount('users', 0);
+    $this->assertSame($before, User::query()->count());
   }
 
   /**

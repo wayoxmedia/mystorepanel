@@ -47,7 +47,7 @@ class NewPasswordController extends Controller
         $user->save();
         event(new PasswordReset($user));
 
-        AuditLog::create([
+        AuditLog::query()->create([
           'actor_id' => $user->id,
           'action' => 'auth.password_reset',
           'subject_type' => get_class($user),

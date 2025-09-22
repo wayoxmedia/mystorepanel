@@ -17,6 +17,16 @@ use Symfony\Component\HttpFoundation\Response;
 class VerifyServiceToken
 {
   /**
+   * The URIs that should be excluded from service token verification.
+   *
+   * @var array<int, string>
+   */
+  protected array $except = [
+    '/.well-known/list-unsubscribe',
+    '/webhooks/resend',
+  ];
+
+  /**
    * Validate "Authorization: Bearer <token>" against SERVICE_TOKEN (.env).
    *
    * Enforces a shared secret for server-to-server calls.

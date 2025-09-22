@@ -104,7 +104,7 @@ class SubscriberController extends Controller
     ]);
     $ip = $request->ip();
     $validated['user_ip'] = $ip;
-    $validated['store_id'] = 1; // This is a placeholder for EG, the actual store_id will be set later.
+    $validated['tenant_id'] = 1; // This is a placeholder for EG, the actual tenant_id will be set later.
 
     // Get the geolocation data using an external API.
     $validated['geo_location'] = $this->geolocationService->getGeolocationByIp($ip);

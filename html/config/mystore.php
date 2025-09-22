@@ -18,16 +18,6 @@ return [
     // Envelope sender (bounce/return-path).
     'bounce' => env('MAIL_BOUNCE_ADDRESS'),
 
-    /**
-     * List-Unsubscribe header value (one or both formats).
-     *
-     * Examples:
-     *  - <mailto:unsubscribe@example.com>
-     *  - <https://example.com/unsubscribe?u=%recipient.id%>
-     *  - <mailto:unsubscribe@example.com>, <https://example.com/unsubscribe?...>
-     */
-    'list_unsubscribe' => env('MAIL_LIST_UNSUBSCRIBE'),
-
     // Libre: por si quieres ramificar lógica por proveedor (smtp|ses|mailgun|postmark|sendgrid|etc.)
     'provider' => env('MAIL_PROVIDER', 'smtp'),
 
