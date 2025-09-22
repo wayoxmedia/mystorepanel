@@ -8,6 +8,9 @@ use App\Http\Controllers\Api\SiteResolveController;
 use App\Http\Controllers\Api\SubscriberController;
 use App\Http\Controllers\Api\TenantPagesController;
 use App\Http\Controllers\Auth\ReauthController;
+use App\Http\Controllers\HealthController;
+use App\Http\Controllers\Webhooks\ResendWebhookController;
+use App\Http\Middleware\VerifySvixSignature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -188,3 +191,20 @@ Route::middleware([
   )
     ->name('tenants.users.role.update');
 });
+
+Route::post('/webhooks/resend', ResendWebhookController::class)
+  // ->middleware([VerifySvixSignature::class . ':resend', 'svix.verify:resend'])
+  ->middleware(['svix.verify:resend'])
+  ->name('webhooks.resend');
+
+/**
+ * Health check endpoints (no auth, but secret token in URL param)
+ *
+ * To configure, set HEALTH_TOKEN=some-secret-value in .env
+ * and provide the same value in the X-Health-Token header.
+ */
+Route::get('/health/live', [HealthController::class, 'live'])
+  ->name('health.live');
+Route::get('/health/ready', [HealthController::class, 'ready'])
+  ->name('health.ready');
+

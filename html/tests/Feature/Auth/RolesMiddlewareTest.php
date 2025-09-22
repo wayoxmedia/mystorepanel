@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -12,6 +13,9 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class RolesMiddlewareTest extends TestCase
 {
+
+  use RefreshDatabase;
+
   /**
    * Setup test routes with necessary middleware.
    * @return void

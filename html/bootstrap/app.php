@@ -1,14 +1,15 @@
 <?php
 
-use App\Http\Middleware\EnsureTenantManager;
-use App\Http\Middleware\VerifyServiceToken;
-use Illuminate\Auth\Middleware\Authenticate;
-use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureEmailVerified;
+use App\Http\Middleware\EnsureTenantManager;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RecentlyReauthenticated;
 use App\Http\Middleware\RequestId;
 use App\Http\Middleware\RequireTenantRole;
+use App\Http\Middleware\VerifyServiceToken;
+use App\Http\Middleware\VerifySvixSignature;
+use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -46,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
       'email.verified' => EnsureEmailVerified::class,
       'role' => RequireTenantRole::class,
       'reauth' => RecentlyReauthenticated::class,
+      'svix.verify' => VerifySvixSignature::class,
     ]);
   })
   ->withSchedule(function (Schedule $schedule) {

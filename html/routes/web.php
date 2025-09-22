@@ -172,18 +172,3 @@ Route::post('/unsubscribe', [UnsubscribePageController::class, 'confirm'])
   ->withoutMiddleware([VerifyCsrfToken::class]) // CSRF not needed; signed URL still validates
   ->name('unsubscribe.confirm');
 
-Route::post('/webhooks/resend', ResendWebhookController::class)
-  ->withoutMiddleware([VerifyCsrfToken::class])
-  ->name('webhooks.resend');
-
-/**
- * Health check endpoints (no auth, but secret token in URL param)
- *
- * To configure, set HEALTH_TOKEN=some-secret-value in .env
- * and provide the same value in the X-Health-Token header.
- */
-Route::get('/health/live', [HealthController::class, 'live'])
-  ->name('health.live');
-Route::get('/health/ready', [HealthController::class, 'ready'])
-  ->name('health.ready');
-
