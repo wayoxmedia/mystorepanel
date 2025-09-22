@@ -1,7 +1,13 @@
 <?php
 
+use App\Http\Middleware\EnsureEmailVerified;
 use App\Http\Middleware\EnsureTenantManager;
+use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\RecentlyReauthenticated;
+use App\Http\Middleware\RequestId;
+use App\Http\Middleware\RequireTenantRole;
 use App\Http\Middleware\VerifyServiceToken;
+use App\Http\Middleware\VerifySvixSignature;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Console\Scheduling\Schedule;
@@ -18,6 +24,14 @@ return Application::configure(basePath: dirname(__DIR__))
     health: __DIR__.'/../routes/health.php',
   )
   ->withMiddleware(function (Middleware $middleware) {
+    /**
+     * We only append RequestId to the 'api' group so every API request
+     * has a correlation id in both the Request and the Response.
+     */
+    $middleware->prependToGroup('api', [
+      RequestId::class,
+    ]);
+
     // Custom middleware aliases
     $middleware->group('api', [
       'throttle:api',
@@ -29,6 +43,11 @@ return Application::configure(basePath: dirname(__DIR__))
       'verified' => EnsureEmailIsVerified::class,
       's2s' => VerifyServiceToken::class,
       'tenant.manager' => EnsureTenantManager::class,
+      'active' => EnsureUserIsActive::class,
+      'email.verified' => EnsureEmailVerified::class,
+      'role' => RequireTenantRole::class,
+      'reauth' => RecentlyReauthenticated::class,
+      'svix.verify' => VerifySvixSignature::class,
     ]);
   })
   ->withSchedule(function (Schedule $schedule) {
@@ -38,7 +57,10 @@ return Application::configure(basePath: dirname(__DIR__))
       ->onOneServer()
       ->withoutOverlapping();
     // Si prefieres otra cadencia:
-    // $schedule->command('invitations:expire')->everyFifteenMinutes()->onOneServer()->withoutOverlapping();
+    // $schedule->command('invitations:expire')
+    //   ->everyFifteenMinutes()
+    //   ->onOneServer()
+    //   ->withoutOverlapping();
   })
   ->withExceptions(function (Exceptions $exceptions) {
     //
@@ -46,5 +68,6 @@ return Application::configure(basePath: dirname(__DIR__))
   ->withProviders([
     App\Providers\AppServiceProvider::class,
     App\Providers\AuthServiceProvider::class,
+    App\Providers\EventServiceProvider::class,
   ])
   ->create();

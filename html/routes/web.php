@@ -14,7 +14,6 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\PlaygroundController;
 use App\Http\Controllers\UnsubscribePageController;
-use App\Http\Controllers\Webhooks\ResendWebhookController;
 use App\Http\Controllers\WellKnown\ListUnsubscribeController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -171,6 +170,3 @@ Route::post('/unsubscribe', [UnsubscribePageController::class, 'confirm'])
   ->withoutMiddleware([VerifyCsrfToken::class]) // CSRF not needed; signed URL still validates
   ->name('unsubscribe.confirm');
 
-Route::post('/webhooks/resend', ResendWebhookController::class)
-  ->withoutMiddleware([VerifyCsrfToken::class])
-  ->name('webhooks.resend');

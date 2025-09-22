@@ -2,25 +2,34 @@
 
 namespace App\Http\Controllers\Webhooks;
 
+use App\Http\Controllers\Controller;
+use App\Services\Email\ResendEventHandler;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
-use Svix\Webhook;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
- * Controller to handle Resend webhooks for email events.
+ * ResendWebhookController
  *
- * This controller verifies the webhook signature using Svix and processes
- * email events such as bounces and complaints to update subscriber status.
+ * Purpose:
+ * - Normalize Resend webhook payloads and delegate persistence to ResendEventHandler.
+ * - Keep this controller thin: signature verification should be enforced by middleware
+ *   (e.g., your VerifyServiceToken / Svix verification), not here.
+ *
+ * Assumptions:
+ * - Route already points to this controller (POST /webhooks/resend or similar).
+ * - A signature verification middleware already ran before reaching this point.
+ * - We accept different shapes for convenience (Resend event "data" can vary by type).
  */
 class ResendWebhookController extends Controller
 {
+  public function __construct(private readonly ResendEventHandler $handler) {}
+
   /**
    * Handle incoming Resend webhook requests.
    *
@@ -32,8 +41,8 @@ class ResendWebhookController extends Controller
    */
   public function __invoke(Request $request): Application|Response|JsonResponse|ResponseFactory
   {
-    // 1) Leer el RAW body (requisito para verificar firma)
-    $payload = $request->getContent();
+    // Raw body as array (Laravel parses JSON for us)
+    $body = $request->json()->all();
     Log::info('Resend webhook hit', [
       'has_svix_id'        => $request->headers->has('svix-id'),
       'has_svix_timestamp' => $request->headers->has('svix-timestamp'),
@@ -42,155 +51,53 @@ class ResendWebhookController extends Controller
       'ip'                 => $request->ip(),
     ]);
 
+    // 1) Basic fields
+    $type = (string)Arr::get($body, 'type', '');
 
-    // 2) Headers posibles: svix-* (principal) o webhook-* (algunas integraciones)
-    $svixId        = $request->header('svix-id')
-      ?? $request->header('webhook-id');
-    $svixTimestamp = $request->header('svix-timestamp')
-      ?? $request->header('webhook-timestamp');
-    $svixSignature = $request->header('svix-signature')
-      ?? $request->header('webhook-signature');
-    $headers = [
-      'svix-id'        => $svixId,
-      'svix-timestamp' => $svixTimestamp,
-      'svix-signature' => $svixSignature,
-    ];
-
-    // 3) Verificar firma con Svix (usar el whsec_* tal cual)
-    $secret = (string) config(
-      'services.resend.webhook_secret',
-      env('RESEND_WEBHOOK_SECRET')
+    // 2) Email resolution (try common locations)
+    $email = (string)(
+      Arr::get($body, 'email') ??
+      Arr::get($body, 'data.to.0') ??
+      Arr::get($body, 'to.0') ??
+      ''
     );
-    if ($secret === '') {
-      Log::warning('Resend webhook: missing secret');
-      return response('Misconfigured', 500);
+
+    // 3) Tags (either top-level 'tags' or inside 'data.tags')
+    $tagsRaw = Arr::get($body, 'tags');
+    if (!is_array($tagsRaw)) {
+      $tagsRaw = (array)Arr::get($body, 'data.tags', []);
     }
 
-    try {
-      $wh = new Webhook($secret);
-      $verified = $wh->verify($payload, $headers);
-      $event = is_array($verified)
-        ? $verified
-        : json_decode(
-          $verified,
-          true,
-          512,
-          JSON_THROW_ON_ERROR
-        );
-    } catch (Throwable $e) {
-      Log::warning(
-        'Resend webhook: signature verification failed',
-        [
-          'error' => $e->getMessage()
-        ]
-      );
-      return response('Invalid signature', 400);
+    // 4) Tenant resolution (prefer normalized key, then tags)
+    $tenantId = Arr::get($body, 'tenant_id');
+    if ($tenantId === null && isset($tagsRaw['tenant_id'])) {
+      $tenantId = $tagsRaw['tenant_id'];
     }
+    $tenantId = $tenantId !== null ? (int)$tenantId : null;
 
-    // 4) Procesar eventos
-    $type = (string) ($event['type'] ?? '');
-    $data = (array)   ($event['data'] ?? []);
-
-    // to: puede venir como string, como array de strings o de objetos
-    $toRaw = $data['to'] ?? ($data['email'] ?? null);
-    if (is_array($toRaw)) {
-      $first = $toRaw[0] ?? null;
-      if (is_string($first)) {
-        $email = strtolower($first);
-      } elseif (is_array($first) && isset($first['email'])) {
-        $email = strtolower((string) $first['email']);
-      } else {
-        $email = '';
-      }
-    } else {
-      $email = strtolower((string) $toRaw);
-    }
-
-    $tags = $data['tags'] ?? [];
-    $tenantId = null;
-    if (is_array($tags)) {
-      $isList = array_is_list($tags);
-      if ($isList) {
-        foreach ($tags as $tag) {
-          if (($tag['name'] ?? '') === 'tenant_id') {
-            $tenantId = (int) ($tag['value'] ?? 0);
-            break;
-          }
-        }
-      } else {
-        if (isset($tags['tenant_id'])) {
-          $tenantId = (int) $tags['tenant_id'];
-        }
-      }
-    }
-
-    // tenant_id desde tags si viene (recomendado cuando envíes con Resend)
-    Log::info('Resend webhook received', [
+    // 5) Build normalized event for the handler
+    $normalized = [
       'type' => $type,
       'email' => $email,
-      'tenant_id'  => $tenantId,
-      'tags_raw'   => $event['data']['tags'] ?? null,
-    ]);
-
-    $now  = now();
-    $meta = [
-      'event'      => $type,
-      'receivedAt' => $now->toIso8601String(),
-      'raw'        => $event, // guarda payload para auditoría
+      'tenant_id' => $tenantId,
+      'tags_raw' => !empty($tagsRaw) ? $tagsRaw : null,
+      'data' => (array)Arr::get($body, 'data', []),
     ];
 
-    // Base query (canal email)
-    $q = DB::table('subscribers')
-      ->where('address_type', 'e')
-      ->whereRaw('LOWER(address) = ?', [$email]);
+    try {
+      $this->handler->handle($normalized);
+    } catch (Throwable $e) {
+      // Do not fail the webhook endpoint; log instead and acknowledge with 202.
+      Log::warning('Resend webhook handler error', [
+        'error' => $e->getMessage(),
+        'type' => $type,
+        'email' => $email,
+        'tenant_id' => $tenantId,
+      ]);
 
-    if ($tenantId) {
-      $q->where('tenant_id', $tenantId);
+      return response()->json(['status' => 'ignored'], 202);
     }
 
-    switch ($type) {
-      case 'email.complained':
-        $q->update([
-          'complained_at'       => $now,
-          'unsubscribed_at'     => $now,
-          'unsubscribe_source'  => 'complaint',
-          'unsubscribe_meta'    => json_encode(
-            $meta,
-            JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
-          ),
-          'active'              => 0,
-          'updated_at'          => $now,
-        ]);
-        break;
-
-      case 'email.bounced':
-        $bounceType = strtolower((string) ($data['bounce']['type'] ?? ''));
-        $isPermanent = ($bounceType === 'permanent');
-
-        // Incremento atómico de rebotes
-        $q->update([
-          'bounce_count'        => DB::raw('bounce_count + 1'),
-          'unsubscribe_meta'    => json_encode(
-            $meta,
-            JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
-          ),
-          'updated_at'          => $now,
-        ]);
-
-        if ($isPermanent) {
-          $q->update([
-            'unsubscribed_at'    => $now,
-            'unsubscribe_source' => 'bounce',
-            'active'             => 0,
-          ]);
-        }
-        break;
-
-      default:
-        // Ignoramos otros eventos por ahora (delivered/opened/clicked/failed)
-        break;
-    }
-
-    return response()->json(['ok' => true]);
+    return response()->json(['status' => 'ok']);
   }
 }
