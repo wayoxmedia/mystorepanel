@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use App\Services\Api\ContactService;
 use App\Services\Api\GeolocationService;
+use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,7 @@ class ContactController extends Controller
    * @param  Request  $request
    * @return JsonResponse
    * @throws GuzzleException On Geolocation API failure.
+   * @throws Exception
    */
   public function store(Request $request): JsonResponse
   {
@@ -61,13 +63,21 @@ class ContactController extends Controller
 
     $ip = $request->ip();
     $validated['user_ip'] = $ip;
-    $validated['store_id'] = 1; // This is a placeholder for EG, the actual store_id will be set later.
+    $validated['tenant_id'] = 1;
+    // This is a placeholder for EG, the actual store_id will be set later.
 
     // Get the geolocation data using an external API.
     $validated['geo_location'] = $this->geolocationService->getGeolocationByIp($ip);
 
-    $this->contactService->store($validated);
+    $response = $this->contactService->store($validated);
 
-    return response()->json(['message' => 'Form submitted successfully']);
+    if ($response) {
+      return response()->json(['message' => 'Form submitted successfully']);
+    } else {
+      return response()->json(
+        ['message' => 'No se pudo guardar el mensaje, intente de nuevo mas tarde'],
+        500
+      );
+    }
   }
 }
