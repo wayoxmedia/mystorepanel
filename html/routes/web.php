@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\InvitationController;
 use App\Http\Controllers\Admin\SeatUpgradeController;
+use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\TenantSeatsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
@@ -170,3 +171,17 @@ Route::post('/unsubscribe', [UnsubscribePageController::class, 'confirm'])
   ->withoutMiddleware([VerifyCsrfToken::class]) // CSRF not needed; signed URL still validates
   ->name('unsubscribe.confirm');
 
+Route::middleware(['auth'])
+->prefix('admin')
+  ->name('admin.')
+  ->group(function () {
+    Route::resource('tenants', TenantController::class)
+      ->only(['index', 'show', 'store', 'update', 'destroy']);
+
+    // State actions (POST to avoid CSRF with forms)
+    Route::post('tenants/{tenant}/suspend', [TenantController::class, 'suspend'])
+      ->name('tenants.suspend');
+
+    Route::post('tenants/{tenant}/resume', [TenantController::class, 'resume'])
+      ->name('tenants.resume');
+  });

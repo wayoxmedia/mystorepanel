@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Tenant;
 use App\Models\User;
+use App\Policies\TenantPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -10,10 +12,11 @@ use Illuminate\Support\Facades\Gate;
 /**
  * Authorization service provider.
  *
- * Define gates and policies here.
+ * Purpose:
+ * - Register application policies and authorization logic.
+ * - Define gates and policies here.
  *
  * How to use:
- *
  *
  * Controllers (Make actions): Soft rules with policies:
  *
@@ -22,10 +25,15 @@ use Illuminate\Support\Facades\Gate;
  * - this->authorize('updateStatus', $target)
  * - this->authorize('impersonate', $target)
  *
- * UI (show buttons): Hard rules with gates:
+ * Notes:
+ *  - Ensure TenantPolicy is mapped to Tenant::class.
+ *
+ * | UI (show buttons): Hard rules with gates:
+ * |-
  * @can('manage-user', $target) // shows user management section.
  * @can('manage-user-roles', $target)
  * @can('manage-user-status', $target) // show specific status buttons.
+ *
  */
 class AuthServiceProvider extends ServiceProvider
 {
@@ -37,6 +45,7 @@ class AuthServiceProvider extends ServiceProvider
    */
   protected $policies = [
     User::class => UserPolicy::class,
+    Tenant::class => TenantPolicy::class,
     // \App\Models\Page::class => \App\Policies\PagePolicy::class,
   ];
 

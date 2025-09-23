@@ -6,10 +6,19 @@ use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
  * Class Tenant.
+ *
+ * Purpose:
+ * Core tenant model for MSP. Soft deletes are enabled to preserve history and
+ * avoid cascading hard-deletes in early development.
+ *
+ * Assumptions:
+ * - Table 'tenants' has a nullable 'deleted_at' TIMESTAMP column.
+ * - Related models reference tenant_id with ON DELETE CASCADE or RESTRICT as needed.
  * @property mixed $id
  * @property mixed $name
  * @property mixed $slug
@@ -26,16 +35,24 @@ use Illuminate\Support\Carbon;
 class Tenant extends Model
 {
   use HasFactory;
+  use SoftDeletes;
 
   protected $fillable = [
     'name',
     'slug',
-    'template_slug',
-    'email',
-    'phone',
     'primary_domain',
     'allowed_origins',
     'status',
+    'user_seat_limit',
+    'template_id',
+    'template_slug',
+    'email',
+    'phone',
+    'billing_email',
+    'timezone',
+    'locale',
+    'plan',
+    'trial_ends_at',
   ];
 
   /**
@@ -46,6 +63,8 @@ class Tenant extends Model
   protected $casts = [
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
+    'trial_ends_at' => 'datetime',
+    'deleted_at'    => 'datetime',
     'allowed_origins' => 'array',
   ];
 
