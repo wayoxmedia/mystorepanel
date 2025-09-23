@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreTenantRequest;
 use App\Http\Requests\Admin\UpdateTenantRequest;
 use App\Http\Resources\TenantResource;
 use App\Models\Tenant;
+use App\Models\Template;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -221,5 +222,46 @@ class TenantController extends Controller
     }
 
     return back()->with('success', 'Tenant resumed.');
+  }
+
+  /**
+   * Show the create form for a new tenant.
+   *
+   * @return View|Factory|Response
+   * @throws AuthorizationException
+   */
+  public function create(): View|Factory|Response
+  {
+    $this->authorize('create', Tenant::class);
+
+    // If you have a templates table, pass a lightweight list to the view.
+    $templates = class_exists(Template::class)
+      ? Template::query()->select('id', 'name')->orderBy('name')->get()
+      : collect();
+
+    return response()->view('admin.tenants.create', [
+      'templates' => $templates,
+    ]);
+  }
+
+  /**
+   * Show the edit form for an existing tenant.
+   *
+   * @param  Tenant  $tenant
+   * @return View|Factory|Response
+   * @throws AuthorizationException
+   */
+  public function edit(Tenant $tenant): View|Factory|Response
+  {
+    $this->authorize('update', $tenant);
+
+    $templates = class_exists(Template::class)
+      ? Template::query()->select('id', 'name')->orderBy('name')->get()
+      : collect();
+
+    return response()->view('admin.tenants.edit', [
+      'tenant'    => $tenant,
+      'templates' => $templates,
+    ]);
   }
 }

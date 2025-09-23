@@ -176,7 +176,7 @@ Route::middleware(['auth'])
   ->name('admin.')
   ->group(function () {
     Route::resource('tenants', TenantController::class)
-      ->only(['index', 'show', 'store', 'update', 'destroy']);
+      ->only(['index', 'show', 'create', 'edit', 'store', 'update', 'destroy']);
 
     // State actions (POST to avoid CSRF with forms)
     Route::post('tenants/{tenant}/suspend', [TenantController::class, 'suspend'])

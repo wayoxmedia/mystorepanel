@@ -29,16 +29,67 @@
     </button>
 
     <div class="collapse navbar-collapse" id="topNav">
+      @php($isSA = auth()->user()?->isPlatformSuperAdmin())
+      @php($isToOrTa = auth()->user()?->hasAnyRole(['tenant_owner','tenant_admin']))
+
       <ul class="navbar-nav me-auto">
-        <!-- Add more admin links here as needed -->
+
+        {{-- Users --}}
         <li class="nav-item">
-          <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+          <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
+             href="{{ route('admin.users.index') }}">
             Users
           </a>
         </li>
-        {{-- Invitations (solo para managers de tenant o SA) --}}
-        @php($isSA = auth()->user()?->isPlatformSuperAdmin())
-        @php($isToOrTa = auth()->user()?->hasAnyRole(['tenant_owner','tenant_admin']))
+
+        {{-- Tenants (dropdown) --}}
+        @php($tenantsActive = request()->routeIs('admin.tenants.*'))
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {{ $tenantsActive ? 'active' : '' }}" href="#" id="navTenantsDropdown"
+             role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tenants
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navTenantsDropdown">
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.tenants.index') && !request('status') ? 'active' : '' }}"
+                 href="{{ route('admin.tenants.index') }}">
+                All
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.tenants.index') && request('status') === 'active' ? 'active' : '' }}"
+                 href="{{ route('admin.tenants.index', ['status' => 'active']) }}">
+                Active
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.tenants.index') && request('status') === 'suspended' ? 'active' : '' }}"
+                 href="{{ route('admin.tenants.index', ['status' => 'suspended']) }}">
+                Suspended
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            @can('create', \App\Models\Tenant::class)
+              <li>
+                <a class="dropdown-item {{ request()->routeIs('admin.tenants.create') ? 'active' : '' }}"
+                   href="{{ route('admin.tenants.create') }}">
+                  Create
+                </a>
+              </li>
+            @endcan
+            {{-- Future: Reports, Settings, etc. --}}
+            <li><hr class="dropdown-divider"></li>
+            <li class="dropdown-header">Shortcuts</li>
+            <li>
+              <a class="dropdown-item"
+                 href="{{ route('admin.tenants.index', ['q' => 'example']) }}">
+                Search “example”
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        {{-- Invitations (tenant_owner / tenant_admin / SA) --}}
         @if($isSA || $isToOrTa)
           <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('admin.invitations.*') ? 'active' : '' }}"
@@ -47,6 +98,8 @@
             </a>
           </li>
         @endif
+
+        {{-- Seats (SA only) --}}
         @if($isSA)
           <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('admin.tenants.seats.*') ? 'active' : '' }}"
@@ -55,33 +108,12 @@
             </a>
           </li>
         @endif
+
+        {{-- (Optional) more admin links here --}}
       </ul>
 
-      {{--<ul class="navbar-nav ms-auto">
-        @auth
-          <li class="nav-item d-flex align-items-center me-2 text-white-50 small">
-            @php($u = auth()->user())
-            <span class="me-2">{{ $u->name }}</span>
-            <span class="badge bg-secondary">{{ $u->tenant?->name ?? 'Platform' }}</span>
-          </li>
-          @if (Route::has('logout'))
-            <li class="nav-item">
-              <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button class="btn btn-sm btn-outline-light">Logout</button>
-              </form>
-            </li>
-          @endif
-        @else
-          @if (Route::has('login'))
-            <li class="nav-item">
-              <a class="btn btn-sm btn-outline-light" href="{{ route('login') }}">Login</a>
-            </li>
-          @endif
-        @endauth
-      </ul>--}}
       <ul class="navbar-nav ms-auto">
-        {{-- My Account SIEMPRE visible para autenticados --}}
+        {{-- My Account --}}
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('account.show') ? 'active' : '' }}"
              href="{{ route('account.show') }}">
@@ -89,12 +121,12 @@
           </a>
         </li>
 
-        {{-- (Opcional) Badge de Platform SA junto al nombre --}}
+        {{-- User name + Platform badge (if SA) --}}
         @if(auth()->user()?->isPlatformSuperAdmin())
           <li class="nav-item">
-      <span class="nav-link disabled">
-        {{ auth()->user()->name }} <span class="badge text-bg-secondary ms-1">Platform</span>
-      </span>
+        <span class="nav-link disabled">
+          {{ auth()->user()->name }} <span class="badge text-bg-secondary ms-1">Platform</span>
+        </span>
           </li>
         @else
           <li class="nav-item">
@@ -102,6 +134,7 @@
           </li>
         @endif
 
+        {{-- Logout --}}
         <li class="nav-item">
           <form method="post" action="{{ route('logout') }}" class="d-inline">
             @csrf
@@ -110,6 +143,8 @@
         </li>
       </ul>
     </div>
+
+
   </div>
 </nav>
 
