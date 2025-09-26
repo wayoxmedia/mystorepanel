@@ -54,7 +54,6 @@ return new class extends Migration
             $charset,
             $collation
           ));
-          info("[SchemaHardeningRound1] ALTER DATABASE `$dbName` -> $charset / $collation OK");
           $changed = true;
           break;
         } catch (Throwable $e) {
@@ -78,7 +77,6 @@ return new class extends Migration
         Schema::table('tenants', function (Blueprint $table): void {
           $table->unique('primary_domain', 'tenants_primary_domain_unique');
         });
-        info('[SchemaHardeningRound1] Created UNIQUE index tenants.primary_domain');
       }
     }
 
@@ -88,15 +86,14 @@ return new class extends Migration
     if (Schema::hasTable('users') && Schema::hasColumn('users', 'role_id')) {
       try {
         DB::statement('ALTER TABLE `users` MODIFY `role_id` BIGINT UNSIGNED NOT NULL');
-        info('[SchemaHardeningRound1] users.role_id set to BIGINT UNSIGNED NOT NULL without DEFAULT');
-      } catch (\Throwable $e) {
+      } catch (Throwable) {
         // If that fails (e.g., due to FK constraints or existing nulls), preserve nullability but drop DEFAULT.
         try {
           $nullable = $this->isColumnNullable('users', 'role_id');
           $nullSql = $nullable ? 'NULL' : 'NOT NULL';
           DB::statement("ALTER TABLE `users` MODIFY `role_id` BIGINT UNSIGNED {$nullSql}");
           info('[SchemaHardeningRound1] users.role_id modified without DEFAULT (preserved nullability)');
-        } catch (\Throwable $e2) {
+        } catch (Throwable $e2) {
           info("[SchemaHardeningRound1] Could not modify users.role_id: {$e2->getMessage()}");
         }
       }
@@ -122,7 +119,6 @@ return new class extends Migration
         Schema::table('invitations', function (Blueprint $table): void {
           $table->unique('token', 'invitations_token_unique');
         });
-        info('[SchemaHardeningRound1] Created UNIQUE index invitations.token');
       }
 
       // 2) Drop any non-unique indexes on token (whatever their names are)
@@ -144,13 +140,12 @@ return new class extends Migration
             Schema::table('invitations', function (Blueprint $table) use ($name): void {
               $table->dropIndex($name);
             });
-            info("[SchemaHardeningRound1] Dropped non-unique index `$name` on invitations.token");
-          } catch (\Throwable $e) {
+          } catch (Throwable) {
             // Fallback to raw SQL if Laravel name resolution fails
             try {
               DB::statement('ALTER TABLE `invitations` DROP INDEX `' . str_replace('`', '``', $name) . '`');
               info("[SchemaHardeningRound1] Dropped non-unique index `$name` via raw SQL");
-            } catch (\Throwable $e2) {
+            } catch (Throwable $e2) {
               info("[SchemaHardeningRound1] Could not drop index `$name`: {$e2->getMessage()}");
             }
           }
@@ -169,7 +164,6 @@ return new class extends Migration
         Schema::table('contacts', function (Blueprint $table): void {
           $table->index(['tenant_id', 'email'], 'contacts_tenant_email_idx');
         });
-        info('[SchemaHardeningRound1] Created index contacts(tenant_id, email)');
       }
     }
 
@@ -184,7 +178,6 @@ return new class extends Migration
         Schema::table('audit_logs', function (Blueprint $table): void {
           $table->index(['subject_type', 'subject_id'], 'audit_logs_subject_type_id_idx');
         });
-        info('[SchemaHardeningRound1] Created index audit_logs(subject_type, subject_id)');
       }
     }
   }
@@ -262,7 +255,7 @@ return new class extends Migration
       [$dbName, $table, $indexName]
     );
 
-    return isset($row->c) ? ((int) $row->c > 0) : false;
+    return isset($row->c) && (int)$row->c > 0;
   }
 
   /**
@@ -290,6 +283,6 @@ return new class extends Migration
       [$dbName, $table, $column]
     );
 
-    return ! $row ? true : strtoupper((string) $row->IS_NULLABLE) === 'YES';
+    return !$row || strtoupper((string)$row->IS_NULLABLE) === 'YES';
   }
 };

@@ -10,7 +10,7 @@
   - Bootstrap 5 CSS is loaded in your layout.
 --}}
 
-@extends('layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Tenant: ' . ($tenant->name ?? 'Detail'))
 

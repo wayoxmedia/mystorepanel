@@ -50,6 +50,9 @@ class TenantController extends Controller
     $this->authorize('viewAny', Tenant::class);
 
     $tenants = Tenant::query()
+      ->when($request->filled('status'), function ($q) use ($request) {
+        $q->where('status', $request->string('status')->toString());
+      })
       ->when($request->filled('q'), function ($q) use ($request) {
         $q->where(function ($qq) use ($request) {
           $term = '%' . $request->string('q')->toString() . '%';
@@ -65,7 +68,6 @@ class TenantController extends Controller
       return TenantResource::collection($tenants);
     }
 
-    // TODO: replace 'admin.tenants.index' with your actual view.
     return response()->view('admin.tenants.index', [
       'tenants' => $tenants,
     ]);

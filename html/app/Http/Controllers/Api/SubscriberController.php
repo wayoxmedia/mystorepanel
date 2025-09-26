@@ -36,6 +36,7 @@ class SubscriberController extends Controller
    */
   public function index(): JsonResponse
   {
+    // TODO Retornar solo subscriptores por tenant_id en un futuro.
     $subscribers = Subscriber::all();
     return response()->json([
       'data' => $subscribers

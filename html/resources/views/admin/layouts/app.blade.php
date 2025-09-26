@@ -88,6 +88,135 @@
             </li>
           </ul>
         </li>
+        {{-- Admin (dropdown) --}}
+        @php($adminActive =
+            request()->routeIs('admin.deliverability.*') ||
+            request()->routeIs('admin.workers.*') ||
+            request()->routeIs('admin.authz.*') ||
+            request()->routeIs('admin.db.*') ||
+            request()->routeIs('admin.branding.*') ||
+            request()->routeIs('admin.ops.*') ||
+            request()->routeIs('admin.audit.*') ||
+            request()->routeIs('admin.cta.*')
+        )
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {{ $adminActive ? 'active' : '' }}" href="#" id="navAdminDropdown"
+             role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Admin
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navAdminDropdown">
+
+            {{-- Deliverability --}}
+            <li class="dropdown-header">Deliverability</li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.deliverability.dmarc') ? 'active' : '' }}"
+                 href="#">
+                DMARC Policies
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.deliverability.staging') ? 'active' : '' }}"
+                 href="#">
+                Staging Safelist / Suppression
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            {{-- Workers & Queues --}}
+            <li class="dropdown-header">Workers & Queues</li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.workers.horizon') ? 'active' : '' }}"
+                 href="#">
+                Horizon Dashboard
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.workers.health') ? 'active' : '' }}"
+                 href="#">
+                Health Checks & Alerts
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.workers.metrics') ? 'active' : '' }}"
+                 href="#">
+                Job Metrics
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            {{-- Authorization --}}
+            <li class="dropdown-header">Authorization</li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.authz.audit') ? 'active' : '' }}"
+                 href="#">
+                Controllers Coverage
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.authz.messages') ? 'active' : '' }}"
+                 href="#">
+                UX & Error Messages
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            {{-- DB Hardening --}}
+            <li class="dropdown-header">Database</li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.db.indexes') ? 'active' : '' }}"
+                 href="#">
+                Indexes & Integrity
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            {{-- Branding (emails) --}}
+            <li class="dropdown-header">Branding</li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.branding.templates') ? 'active' : '' }}"
+                 href="#">
+                Email Templates & i18n
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            {{-- Ops / Feature Flags --}}
+            <li class="dropdown-header">Operability</li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.ops.flags') ? 'active' : '' }}"
+                 href="#">
+                Config & Feature Flags
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            {{-- Audit --}}
+            <li class="dropdown-header">Audit</li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.audit.events') ? 'active' : '' }}"
+                 href="#">
+                Audit Events
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            {{-- CTA: Buy More Users --}}
+            <li class="dropdown-header">CTA</li>
+            <li>
+              <a class="dropdown-item {{ request()->routeIs('admin.cta.buy-more-users') ? 'active' : '' }}"
+                 href="#">
+                Buy More Users
+              </a>
+            </li>
+          </ul>
+        </li>
 
         {{-- Invitations (tenant_owner / tenant_admin / SA) --}}
         @if($isSA || $isToOrTa)
@@ -143,8 +272,6 @@
         </li>
       </ul>
     </div>
-
-
   </div>
 </nav>
 

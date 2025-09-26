@@ -23,7 +23,9 @@ class EgleeTenantSeeder extends Seeder
 
     DB::transaction(function () use ($now, $tenantSlug, $tenantName, $templateSlug, $domain) {
       // 1) Ensure templates exist (default + eglee)
-      $defaultTemplateId = DB::table('templates')->where('slug', 'default')->value('id');
+      $defaultTemplateId = DB::table('templates')
+        ->where('slug', 'default')
+        ->value('id');
       if (!$defaultTemplateId) {
         DB::table('templates')->insertGetId([
           'slug' => 'default',

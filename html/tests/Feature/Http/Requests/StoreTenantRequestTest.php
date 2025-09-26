@@ -8,6 +8,7 @@ use App\Models\Template;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -59,10 +60,12 @@ class StoreTenantRequestTest extends TestCase
   }
 
   /**
-   * @dataProvider invalidStorePayloadProvider
+   * Test that invalid payloads are rejected with 422 and appropriate error keys.
+   *
    * @param  array<string,mixed>  $payload
    * @param  array<string>        $expectedErrorKeys
    */
+  #[DataProvider('invalidStorePayloadProvider')]
   public function testRejectsInvalidPayloads(array $payload, array $expectedErrorKeys): void
   {
     /** @var User $user */

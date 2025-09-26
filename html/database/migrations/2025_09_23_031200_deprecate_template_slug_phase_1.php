@@ -48,9 +48,6 @@ return new class extends Migration
         Schema::table('templates', function (Blueprint $table): void {
           $table->unique('slug', 'templates_slug_unique');
         });
-        info(
-          '[DeprecateTemplateSlugPhase1] Created UNIQUE index templates.slug'
-        );
       }
     }
 
@@ -68,8 +65,6 @@ return new class extends Migration
           MODIFY `template_slug`
           VARCHAR(191) NULL
         ');
-        info('[DeprecateTemplateSlugPhase1] tenants.template_slug
-          set to NULLABLE without DEFAULT (deprecated)');
       } catch (Throwable) {
         // If current length differs, try to detect length and re-apply with NULL
         try {
@@ -79,8 +74,6 @@ return new class extends Migration
             MODIFY `template_slug`
             VARCHAR({$len}) NULL
           ");
-          info('[DeprecateTemplateSlugPhase1] tenants.template_slug
-           set to NULLABLE (detected length) without DEFAULT');
         } catch (Throwable $e2) {
           info("[DeprecateTemplateSlugPhase1] Could not modify
            tenants.template_slug: {$e2->getMessage()}");

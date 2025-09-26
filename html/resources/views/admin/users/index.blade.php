@@ -65,11 +65,9 @@
 @endif
 
             <td>
-@if (!!$u->role)
-              <span class="badge text-bg-light border me-1 mb-1">{{ $u->role->name ?? '' }}</span>
-@else
-              <span class="text-muted small">No roles</span>
-@endif
+              <span class="badge text-bg-light border me-1 mb-1">
+                {{ $u->role->name }}
+              </span>
             </td>
             <td>
 @php
