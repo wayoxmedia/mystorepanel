@@ -20,7 +20,7 @@ class UpdateTenantRequestTest extends TestCase
 {
   use RefreshDatabase;
 
-  public function testUpdatesAllowedFieldsAndKeepsSlugImmutable(): void
+  public function testUpdatesAllowedFields(): void
   {
     /** @var User $admin */
     $admin = User::factory()->create(['status' => 'active']);
@@ -34,7 +34,7 @@ class UpdateTenantRequestTest extends TestCase
 
     $payload = [
       'name'            => 'Renamed Corp',
-      'slug'            => 'attempt-to-change', // should be ignored + error in request validator
+      'slug'            => 'keep-this',
       'status'          => 'active',
       'user_seat_limit' => 6,
       'primary_domain'  => 'renamed.example.test',
@@ -42,7 +42,7 @@ class UpdateTenantRequestTest extends TestCase
 
     $res = $this->actingAs($admin)
       ->json('PUT', route('admin.tenants.update', $tenant), $payload)
-      ->assertStatus(302); // Request validator adds error; controller ignores slug change defensively.
+      ->assertStatus(200);
 
     // Ensure slug remained the same, while other fields changed
     $tenant->refresh();

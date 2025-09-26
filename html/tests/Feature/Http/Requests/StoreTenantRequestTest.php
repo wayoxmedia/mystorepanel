@@ -40,7 +40,7 @@ class StoreTenantRequestTest extends TestCase
       'status'          => 'active',
       'template_id'     => $template->id,
       'user_seat_limit' => 5,
-      'billing_email'   => 'billing@acme.test',
+      'billing_email'   => 'billing@acme.com',
       'timezone'        => 'UTC',
       'locale'          => 'en',
       'plan'            => 'pro',
