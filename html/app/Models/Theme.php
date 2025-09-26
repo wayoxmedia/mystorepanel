@@ -19,6 +19,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Assumptions:
  * - 'themes' table exists with (tenant_id, name, slug, status, description, config).
  * - Related Tenant exists.
+ *
+ * @property int $id
+ * @property int $tenant_id
+ * @property mixed $slug
  */
 class Theme extends Model
 {

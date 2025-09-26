@@ -3,11 +3,12 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\InvitationController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SeatUpgradeController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\TenantSeatsController;
+use App\Http\Controllers\Admin\ThemeController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserStatusController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\Auth\LoginController;
@@ -184,4 +185,7 @@ Route::middleware(['auth'])
 
     Route::post('tenants/{tenant}/resume', [TenantController::class, 'resume'])
       ->name('tenants.resume');
+
+    Route::resource('themes', ThemeController::class)
+      ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
   });

@@ -42,7 +42,14 @@ use Illuminate\Support\Carbon;
  * @property mixed $status
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @method static TenantFactory factory($count = null, $state = [])
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $trial_ends_at
+ * @property int|null $template_id
+ * @property int|null $user_seat_limit
+ * @property string|null $billing_email
+ * @property string|null $timezone
+ * @property string|null $locale
+ * @property string|null $plan
  */
 class Tenant extends Model
 {
